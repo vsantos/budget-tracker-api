@@ -40,7 +40,10 @@ type CreditCard struct {
 // Balance defines an user balance
 type Balance struct {
 	ID          primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	OwnerID     primitive.ObjectID `json:"owner_id,omitempty" bson:"owner_id,omitempty"`
 	TotalAmount float64            `json:"total_amount" bson:"total_amount"`
 	SpendAmount float64            `json:"spend_amount" bson:"spend_amount"`
 	Currency    string             `json:"currency" bson:"currency"`
+	Month       int32              `json:"month" bson:"month"`
+	Year        int32              `json:"year" bson:"year"`
 }
