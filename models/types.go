@@ -2,6 +2,12 @@ package models
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
+const (
+	mongodbDatabase        = "budget-tracker"
+	mongodbUserCollection  = "users"
+	mongodbCardsCollection = "cards"
+)
+
 // User struct defines a user
 type User struct {
 	ID             primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
@@ -28,4 +34,5 @@ type CreditCard struct {
 	Alias      string             `json:"alias" bson:"alias"`
 	Network    string             `json:"network" bson:"network"`
 	LastDigits int32              `json:"last_digits" bson:"last_digits"`
+	CreatedAt  primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
 }

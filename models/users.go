@@ -16,21 +16,14 @@ import (
 	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
-const (
-	mongodbDatabase   = "budget-tracker"
-	mongodbCollection = "users"
-)
-
 // GetUsers will return all users from database
-func GetUsers() (us []User, err error) {
+func GetUsers() (users []User, err error) {
 	dbClient, err := services.InitDatabase()
 	if err != nil {
 		return []User{}, err
 	}
 
-	var users []User
-
-	col := dbClient.Database(mongodbDatabase).Collection(mongodbCollection)
+	col := dbClient.Database(mongodbDatabase).Collection(mongodbUserCollection)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	cursor, err := col.Find(ctx, bson.M{})
 	if err != nil {
@@ -70,11 +63,10 @@ func GetUser(id string) (u *User, err error) {
 
 	var user User
 
-	col := dbClient.Database(mongodbDatabase).Collection(mongodbCollection)
+	col := dbClient.Database(mongodbDatabase).Collection(mongodbUserCollection)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
 	err = col.FindOne(ctx, bson.M{"_id": pid}).Decode(&user)
-	// err = col.FindOne(ctx, User{ID: pid}).Decode(&user)
 	if err != nil {
 		cancel()
 		return &User{}, err
@@ -91,7 +83,7 @@ func CreateUser(u User) (id string, err error) {
 		return "", err
 	}
 
-	col := dbClient.Database(mongodbDatabase).Collection(mongodbCollection)
+	col := dbClient.Database(mongodbDatabase).Collection(mongodbUserCollection)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
 	_, err = col.Indexes().CreateOne(
@@ -142,7 +134,7 @@ func DeleteUser(id string) (err error) {
 		return err
 	}
 
-	col := dbClient.Database(mongodbDatabase).Collection(mongodbCollection)
+	col := dbClient.Database(mongodbDatabase).Collection(mongodbUserCollection)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
 	log.Infoln("deleting user", id)
