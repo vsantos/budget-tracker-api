@@ -36,3 +36,11 @@ type CreditCard struct {
 	LastDigits int32              `json:"last_digits" bson:"last_digits"`
 	CreatedAt  primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
 }
+
+// Balance defines an user balance
+type Balance struct {
+	ID          primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	TotalAmount float64            `json:"total_amount" bson:"total_amount"`
+	SpendAmount float64            `json:"spend_amount" bson:"spend_amount"`
+	Currency    string             `json:"currency" bson:"currency"`
+}

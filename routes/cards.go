@@ -8,6 +8,17 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// validateCardNetwork will validate if a card's network is an allowed one
+func validateCardNetwork(network string) bool {
+	networks := []string{"VISA", "MASTERCARD", "ELO", "VR", "TICKET"}
+	for _, n := range networks {
+		if network == n {
+			return true
+		}
+	}
+	return false
+}
+
 // CreateCardEndpoint will create a single card to an user
 func CreateCardEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
@@ -15,6 +26,13 @@ func CreateCardEndpoint(response http.ResponseWriter, request *http.Request) {
 	var card models.CreditCard
 
 	_ = json.NewDecoder(request.Body).Decode(&card)
+
+	validNetwork := validateCardNetwork(card.Network)
+	if !validNetwork {
+		response.WriteHeader(http.StatusInternalServerError)
+		response.Write([]byte(`{"message": "could not create card", "details": "given network '` + card.Network + `' is not a valid one"}`))
+		return
+	}
 
 	result, err := models.CreateCard(card)
 	if err != nil {
