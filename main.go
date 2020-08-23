@@ -29,5 +29,8 @@ func main() {
 	router.HandleFunc("/api/v1/cards/{owner_id}", routes.GetCardsEndpoint).Methods("GET")
 	router.HandleFunc("/api/v1/cards/{id}", routes.DeleteCardEndpoint).Methods("DELETE")
 
-	http.ListenAndServe(port, router)
+	err := http.ListenAndServe(port, router)
+	if err != nil {
+		log.Errorln(err)
+	}
 }
