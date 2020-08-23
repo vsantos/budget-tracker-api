@@ -22,27 +22,27 @@ const (
 )
 
 // GetUsers will return all users from database
-func GetUsers() (us *[]SanitizedUser, err error) {
+func GetUsers() (us []User, err error) {
 	dbClient, err := services.InitDatabase()
 	if err != nil {
-		return &[]SanitizedUser{}, err
+		return []User{}, err
 	}
 
-	var users []SanitizedUser
+	var users []User
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbCollection)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	cursor, err := col.Find(ctx, bson.M{})
 	if err != nil {
 		cancel()
-		return &[]SanitizedUser{}, err
+		return []User{}, err
 	}
 
 	defer cursor.Close(ctx)
 	defer cancel()
 
 	for cursor.Next(ctx) {
-		var user SanitizedUser
+		var user User
 		cursor.Decode(&user)
 		users = append(users, user)
 		defer cancel()
@@ -50,14 +50,19 @@ func GetUsers() (us *[]SanitizedUser, err error) {
 
 	if err := cursor.Err(); err != nil {
 		cancel()
-		return &[]SanitizedUser{}, err
+		return []User{}, err
 	}
 
-	return &users, nil
+	return users, nil
 }
 
 // GetUser will return a user from database
-func GetUser(login string) (u *User, err error) {
+func GetUser(id string) (u *User, err error) {
+	pid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return &User{}, err
+	}
+
 	dbClient, err := services.InitDatabase()
 	if err != nil {
 		return &User{}, err
@@ -68,7 +73,8 @@ func GetUser(login string) (u *User, err error) {
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbCollection)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
-	err = col.FindOne(ctx, User{Login: login}).Decode(&user)
+	err = col.FindOne(ctx, bson.M{"_id": pid}).Decode(&user)
+	// err = col.FindOne(ctx, User{ID: pid}).Decode(&user)
 	if err != nil {
 		cancel()
 		return &User{}, err
@@ -79,10 +85,10 @@ func GetUser(login string) (u *User, err error) {
 }
 
 // CreateUser creates an user based on request body payload
-func CreateUser(u *User) (err error) {
+func CreateUser(u User) (id string, err error) {
 	dbClient, err := services.InitDatabase()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbCollection)
@@ -103,29 +109,34 @@ func CreateUser(u *User) (err error) {
 	// adding salted password for user
 	if u.SaltedPassword == "" {
 		cancel()
-		return errors.New("empty password input")
+		return "", errors.New("empty password input")
 	}
 
 	u.SaltedPassword, err = crypt.GenerateSaltedPassword(u.SaltedPassword)
 	if err != nil {
 		cancel()
-		return err
+		return "", err
 	}
 
-	_, err = col.InsertOne(ctx, u)
+	r, err := col.InsertOne(ctx, u)
 	if err != nil {
 		cancel()
-		return err
+		return "", err
 	}
 
 	defer cancel()
 
 	log.Infoln("created user", u.Login)
-	return nil
+	return r.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
 // DeleteUser creates an user based on request body payload
-func DeleteUser(login string) (err error) {
+func DeleteUser(id string) (err error) {
+	pid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
 	dbClient, err := services.InitDatabase()
 	if err != nil {
 		return err
@@ -134,8 +145,8 @@ func DeleteUser(login string) (err error) {
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbCollection)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
-	log.Infoln("deleting user", login)
-	result, err := col.DeleteOne(ctx, bson.M{"login": login})
+	log.Infoln("deleting user", id)
+	result, err := col.DeleteOne(ctx, bson.M{"_id": pid})
 	if err != nil {
 		cancel()
 		return err
@@ -150,6 +161,6 @@ func DeleteUser(login string) (err error) {
 
 	defer cancel()
 
-	log.Infoln("deleted user", login)
+	log.Infoln("deleted user", id)
 	return nil
 }

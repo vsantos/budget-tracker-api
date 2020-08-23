@@ -31,14 +31,15 @@ func CreateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	_ = json.NewDecoder(request.Body).Decode(&user)
 
-	err := models.CreateUser(&user)
+	result, err := models.CreateUser(user)
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "could not create user", "details": "` + err.Error() + `"}`))
 		return
 	}
 
-	response.Write([]byte(`{"message": "created user '` + user.Login + `'"}`))
+	response.WriteHeader(http.StatusCreated)
+	response.Write([]byte(`{"message": "created user '` + user.Login + `'", "id": "` + result + `"}`))
 }
 
 // DeleteUserEndpoint deletes an user
@@ -47,14 +48,15 @@ func DeleteUserEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	params := mux.Vars(request)
 
-	err := models.DeleteUser(params["login"])
+	err := models.DeleteUser(params["id"])
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "could not delete user", "details": "` + err.Error() + `"}`))
 		return
 	}
 
-	response.Write([]byte(`{"message": "deleted user '` + params["login"] + `'"}`))
+	response.WriteHeader(http.StatusCreated)
+	response.Write([]byte(`{"message": "deleted user '` + params["id"] + `'"}`))
 }
 
 // GetUserEndpoint an unique user
@@ -80,6 +82,11 @@ func GetUsersEndpoint(response http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "` + err.Error() + `"}`))
+		return
+	}
+
+	if len(users) == 0 {
+		response.Write([]byte(`[]`))
 		return
 	}
 
