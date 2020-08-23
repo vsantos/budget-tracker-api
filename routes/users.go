@@ -16,11 +16,11 @@ func HealthCheck(response http.ResponseWriter, request *http.Request) {
 	err := services.DatabaseHealth()
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
-		response.Write([]byte(`{"mongodb": "unhealthy", "details": "` + err.Error() + `"}`))
+		response.Write([]byte(`{"database": "unhealthy", "details": "` + err.Error() + `"}`))
 		return
 	}
 
-	response.Write([]byte(`{"mongodb": "healthy"}`))
+	response.Write([]byte(`{"database": "healthy"}`))
 }
 
 // CreateUserEndpoint creates an user

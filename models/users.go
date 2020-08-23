@@ -17,10 +17,10 @@ import (
 )
 
 // GetUsers will return all users from database
-func GetUsers() (users []User, err error) {
+func GetUsers() (users []SanitizedUser, err error) {
 	dbClient, err := services.InitDatabase()
 	if err != nil {
-		return []User{}, err
+		return []SanitizedUser{}, err
 	}
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbUserCollection)
@@ -28,14 +28,14 @@ func GetUsers() (users []User, err error) {
 	cursor, err := col.Find(ctx, bson.M{})
 	if err != nil {
 		cancel()
-		return []User{}, err
+		return []SanitizedUser{}, err
 	}
 
 	defer cursor.Close(ctx)
 	defer cancel()
 
 	for cursor.Next(ctx) {
-		var user User
+		var user SanitizedUser
 		cursor.Decode(&user)
 		users = append(users, user)
 		defer cancel()
@@ -43,7 +43,7 @@ func GetUsers() (users []User, err error) {
 
 	if err := cursor.Err(); err != nil {
 		cancel()
-		return []User{}, err
+		return []SanitizedUser{}, err
 	}
 
 	return users, nil

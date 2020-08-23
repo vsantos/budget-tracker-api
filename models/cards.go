@@ -14,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
-// CreateCard created a card for a given owner_id
+// CreateCard creates a card for a given owner_id
 func CreateCard(c CreditCard) (id string, err error) {
 	dbClient, err := services.InitDatabase()
 	if err != nil {

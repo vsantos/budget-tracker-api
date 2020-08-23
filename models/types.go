@@ -3,9 +3,10 @@ package models
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 const (
-	mongodbDatabase        = "budget-tracker"
-	mongodbUserCollection  = "users"
-	mongodbCardsCollection = "cards"
+	mongodbDatabase          = "budget-tracker"
+	mongodbUserCollection    = "users"
+	mongodbCardsCollection   = "cards"
+	mongodbBalanceCollection = "balance"
 )
 
 // User struct defines a user
@@ -37,13 +38,44 @@ type CreditCard struct {
 	CreatedAt  primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
 }
 
+// Income s
+type Income struct {
+	GrossIncome float64 `json:"gross" bson:"gross"`
+	NetIncome   float64 `json:"net" bson:"net"`
+}
+
+// Outcome d
+type Outcome struct {
+	FixedOutcome   float64 `json:"fixed" bson:"fixed"`
+	DynamicOutcome float64 `json:"dynamic" bson:"dynamic"`
+}
+
 // Balance defines an user balance
 type Balance struct {
-	ID          primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	OwnerID     primitive.ObjectID `json:"owner_id,omitempty" bson:"owner_id,omitempty"`
-	TotalAmount float64            `json:"total_amount" bson:"total_amount"`
-	SpendAmount float64            `json:"spend_amount" bson:"spend_amount"`
-	Currency    string             `json:"currency" bson:"currency"`
-	Month       int32              `json:"month" bson:"month"`
-	Year        int32              `json:"year" bson:"year"`
+	ID              primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	OwnerID         primitive.ObjectID `json:"owner_id,omitempty" bson:"owner_id,omitempty"`
+	Income          Income             `json:"income,omitempty" bson:"income,omitempty"`
+	Outcome         Outcome            `json:"outcome" bson:"outcome"`
+	SpendableAmount float64            `json:"spendable_amount" bson:"spendable_amount"`
+	Currency        string             `json:"currency" bson:"currency"`
+	Month           int64              `json:"month" bson:"month"`
+	Year            int64              `json:"year" bson:"year"`
+	CreatedAt       primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
+}
+
+// PaymentMethod s
+type PaymentMethod struct {
+	Credit      CreditCard `json:"credit,omitempty" bson:"credit,omitempty"`
+	Debit       bool       `json:"debit,omitempty" bson:"debit,omitempty"`
+	PaymentSlip bool       `json:"payment_slip,omitempty" bson:"payment_slip,omitempty"`
+}
+
+// Spends d
+type Spends struct {
+	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	OwnerID   primitive.ObjectID `json:"owner_id,omitempty" bson:"owner_id,omitempty"`
+	Type      string             `json:"type,omitempty" bson:"type,omitempty"`
+	Method    PaymentMethod      `json:"payment_method,omitempty" bson:"payment_method,omitempty"`
+	Category  []string           `json:"category,omitempty" bson:"category,omitempty"`
+	CreatedAt primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
 }
