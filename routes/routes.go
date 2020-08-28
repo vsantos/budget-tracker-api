@@ -12,9 +12,7 @@ func InitRoutes(router *mux.Router) {
 	m := handlers.GetMiddlewares()
 	h := handlers.GetHandlers()
 
-	router.Handle("/health", h.HealthCheckHandler).Methods("GET")
-
-	router.Handle("/api/v1/auth/token", m.JSON(m.Auth(h.HealthCheckHandler))).Methods("GET")
+	router.Handle("/health", m.JSON(h.HealthCheckHandler)).Methods("GET")
 
 	router.HandleFunc("/api/v1/user", controllers.CreateUserEndpoint).Methods("POST")
 	router.HandleFunc("/api/v1/user/{id}", controllers.GetUserEndpoint).Methods("GET")

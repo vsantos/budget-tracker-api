@@ -14,18 +14,18 @@ type Middlewares struct {
 
 // GetMiddlewares will return all middlewares handlers initialized
 func GetMiddlewares() (m Middlewares) {
-	// m.Auth = handlers.Authentication
-	m.JSON = ContentTypeJson
-	m.Auth = IsAuthenticated
+	m.JSON = RequireContentTypeJSON
+	m.Auth = RequireTokenAuthentication
 	return m
 }
 
-// ContentTypeJson enforces JSON content-type from requests
-func ContentTypeJson(h http.Handler) http.Handler {
+// RequireContentTypeJSON enforces JSON content-type from requests
+func RequireContentTypeJSON(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		contentType := r.Header.Get("Content-Type")
 
 		fmt.Println(contentType)
+
 		if contentType == "" {
 			http.Error(w, "Empty Content-Type header", http.StatusBadRequest)
 			return
@@ -47,8 +47,8 @@ func ContentTypeJson(h http.Handler) http.Handler {
 	})
 }
 
-// IsAuthenticated enforces authentication token from requests
-func IsAuthenticated(h http.Handler) http.Handler {
+// RequireTokenAuthentication enforces authentication token from requests
+func RequireTokenAuthentication(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Println("auth")

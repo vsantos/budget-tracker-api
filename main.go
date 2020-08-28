@@ -4,6 +4,7 @@ import (
 	"budget-tracker/routes"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
@@ -36,7 +37,8 @@ func GenerateJWT() (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["authorized"] = true
-	claims["user"] = "vsantos"
+	claims["sub"] = "vsantos"
+	claims["exp"] = time.Now().Add(time.Hour * time.Duration(settings.Get().JWTExpirationDelta)).Unix()
 
 	tokenString, err := token.SignedString(mySigninKey)
 	if err != nil {
@@ -49,6 +51,7 @@ func main() {
 	log.Infoln("Started Application at port", port)
 
 	router := mux.NewRouter()
+	router.HandleFunc("/api/v1/auth/token", HomePage).Methods("POST")
 	routes.InitRoutes(router)
 
 	err := http.ListenAndServe(port, router)
