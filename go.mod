@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/apache/thrift v0.13.0 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-logfmt/logfmt v0.5.0 // indirect
 	github.com/go-openapi/loads v0.19.5
 	github.com/gorilla/mux v1.7.4

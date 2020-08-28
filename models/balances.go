@@ -38,6 +38,8 @@ func CreateBalance(b Balance) (id string, err error) {
 	// adding timestamp to creationDate
 	t := time.Now()
 	b.CreatedAt = primitive.NewDateTimeFromTime(t)
+	b.SpendableAmount = b.Income.NetIncome
+	b.Historic = []Spends{}
 
 	r, err := col.InsertOne(ctx, b)
 	if err != nil {

@@ -1,23 +1,33 @@
 package routes
 
 import (
+	"budget-tracker/controllers"
+	"budget-tracker/handlers"
+
 	"github.com/gorilla/mux"
 )
 
 // InitRoutes will initiate all routes
 func InitRoutes(router *mux.Router) {
-	router.HandleFunc("/health", HealthCheck).Methods("GET")
+	m := handlers.GetMiddlewares()
+	h := handlers.GetHandlers()
 
-	router.HandleFunc("/api/v1/user", CreateUserEndpoint).Methods("POST")
-	router.HandleFunc("/api/v1/user/{id}", GetUserEndpoint).Methods("GET")
-	router.HandleFunc("/api/v1/user/{id}", DeleteUserEndpoint).Methods("DELETE")
-	router.HandleFunc("/api/v1/users", GetUsersEndpoint).Methods("GET")
+	router.Handle("/health", h.HealthCheckHandler).Methods("GET")
 
-	router.HandleFunc("/api/v1/cards", CreateCardEndpoint).Methods("POST")
-	router.HandleFunc("/api/v1/cards", GetAllCardsEndpoint).Methods("GET")
-	router.HandleFunc("/api/v1/cards/{id}", DeleteCardEndpoint).Methods("DELETE")
-	router.HandleFunc("/api/v1/cards/{owner_id}", GetCardsEndpoint).Methods("GET")
+	router.Handle("/api/v1/auth/token", m.JSON(m.Auth(h.HealthCheckHandler))).Methods("GET")
 
-	router.HandleFunc("/api/v1/balance", CreateBalanceEndpoint).Methods("POST")
-	router.HandleFunc("/api/v1/balance/{owner_id}", GetBalanceEndpoint).Methods("GET")
+	router.HandleFunc("/api/v1/user", controllers.CreateUserEndpoint).Methods("POST")
+	router.HandleFunc("/api/v1/user/{id}", controllers.GetUserEndpoint).Methods("GET")
+	router.HandleFunc("/api/v1/user/{id}", controllers.DeleteUserEndpoint).Methods("DELETE")
+	router.HandleFunc("/api/v1/users", controllers.GetUsersEndpoint).Methods("GET")
+
+	router.HandleFunc("/api/v1/cards", controllers.CreateCardEndpoint).Methods("POST")
+	router.HandleFunc("/api/v1/cards", controllers.GetAllCardsEndpoint).Methods("GET")
+	router.HandleFunc("/api/v1/cards/{id}", controllers.DeleteCardEndpoint).Methods("DELETE")
+	router.HandleFunc("/api/v1/cards/{owner_id}", controllers.GetCardsEndpoint).Methods("GET")
+
+	router.HandleFunc("/api/v1/balance", controllers.CreateBalanceEndpoint).Methods("POST")
+	router.HandleFunc("/api/v1/balance/{owner_id}", controllers.GetBalanceEndpoint).Methods("GET")
+
+	router.HandleFunc("/api/v1/spends", controllers.CreateSpendEndpoint).Methods("POST")
 }
