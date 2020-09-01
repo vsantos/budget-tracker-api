@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"budget-tracker/controllers"
 	"budget-tracker/handlers"
 
 	"github.com/gorilla/mux"
@@ -12,20 +11,23 @@ func InitRoutes(router *mux.Router) {
 	m := handlers.GetMiddlewares()
 	h := handlers.GetHandlers()
 
-	router.Handle("/health", m.JSON(h.HealthCheckHandler)).Methods("GET")
+	router.Handle("/health", m.JSON(m.Auth(h.HealthCheckHandler))).Methods("GET")
 
-	router.HandleFunc("/api/v1/user", controllers.CreateUserEndpoint).Methods("POST")
-	router.HandleFunc("/api/v1/user/{id}", controllers.GetUserEndpoint).Methods("GET")
-	router.HandleFunc("/api/v1/user/{id}", controllers.DeleteUserEndpoint).Methods("DELETE")
-	router.HandleFunc("/api/v1/users", controllers.GetUsersEndpoint).Methods("GET")
+	router.Handle("/api/v1/jwt/issue", m.JSON(h.CreateJWTTokenHandler)).Methods("POST")
+	router.Handle("/api/v1/jwt/refresh", m.JSON(h.CreateJWTTokenHandler)).Methods("POST")
 
-	router.HandleFunc("/api/v1/cards", controllers.CreateCardEndpoint).Methods("POST")
-	router.HandleFunc("/api/v1/cards", controllers.GetAllCardsEndpoint).Methods("GET")
-	router.HandleFunc("/api/v1/cards/{id}", controllers.DeleteCardEndpoint).Methods("DELETE")
-	router.HandleFunc("/api/v1/cards/{owner_id}", controllers.GetCardsEndpoint).Methods("GET")
+	router.Handle("/api/v1/user", m.JSON(m.Auth(h.CreateUserHandler))).Methods("POST")
+	router.Handle("/api/v1/user/{id}", m.JSON(m.Auth(h.GetUserHandler))).Methods("GET")
+	router.Handle("/api/v1/user/{id}", m.JSON(m.Auth(h.DeleteUserHandler))).Methods("DELETE")
+	router.Handle("/api/v1/users", m.JSON(m.Auth(h.GetUsersHandler))).Methods("GET")
 
-	router.HandleFunc("/api/v1/balance", controllers.CreateBalanceEndpoint).Methods("POST")
-	router.HandleFunc("/api/v1/balance/{owner_id}", controllers.GetBalanceEndpoint).Methods("GET")
+	router.Handle("/api/v1/cards", m.JSON(m.Auth(h.CreateCardHandler))).Methods("POST")
+	router.Handle("/api/v1/cards", m.JSON(m.Auth(h.GetAllCardsHandler))).Methods("GET")
+	router.Handle("/api/v1/cards/{id}", m.JSON(m.Auth(h.DeleteCardHandler))).Methods("DELETE")
+	router.Handle("/api/v1/cards/{owner_id}", m.JSON(m.Auth(h.GetCardsHandler))).Methods("GET")
 
-	router.HandleFunc("/api/v1/spends", controllers.CreateSpendEndpoint).Methods("POST")
+	router.Handle("/api/v1/balance", m.JSON(m.Auth(h.CreateBalanceHandler))).Methods("POST")
+	router.Handle("/api/v1/balance/{owner_id}", m.JSON(m.Auth(h.GetBalanceHandler))).Methods("GET")
+
+	router.Handle("/api/v1/spends", m.JSON(m.Auth(h.CreateSpendHandler))).Methods("POST")
 }

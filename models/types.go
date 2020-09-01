@@ -1,6 +1,9 @@
 package models
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+)
 
 const (
 	mongodbDatabase          = "budget-tracker"
@@ -8,6 +11,11 @@ const (
 	mongodbCardsCollection   = "cards"
 	mongodbBalanceCollection = "balance"
 )
+
+// Database creates a Database client
+type Database struct {
+	client *mongo.Client
+}
 
 // User struct defines a user
 type User struct {
@@ -18,6 +26,13 @@ type User struct {
 	Email          string             `json:"email,omitempty" bson:"email,omitempty"`
 	SaltedPassword string             `json:"password,omitempty" bson:"password,omitempty"`
 	CreatedAt      primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
+}
+
+// JWTUser defines a user to generate JWT tokens
+type JWTUser struct {
+	ID       primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	Login    string             `json:"login" bson:"login"`
+	Password string             `json:"password" bson:"password"`
 }
 
 // SanitizedUser defines a sanited user to GET purposes

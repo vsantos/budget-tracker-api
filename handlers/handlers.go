@@ -9,9 +9,13 @@ import (
 type Handlers struct {
 	HealthCheckHandler http.Handler
 
+	CreateJWTTokenHandler  http.Handler
+	RefreshJWTTokenHandler http.Handler
+
 	CreateUserHandler http.Handler
 	GetUserHandler    http.Handler
 	DeleteUserHandler http.Handler
+	GetUsersHandler   http.Handler
 
 	CreateCardHandler  http.Handler
 	GetAllCardsHandler http.Handler
@@ -27,15 +31,23 @@ type Handlers struct {
 // GetHandlers will return all backend handlers initialized
 func GetHandlers() (h Handlers) {
 	h.HealthCheckHandler = http.HandlerFunc(controllers.HealthCheck)
+
+	h.CreateJWTTokenHandler = http.HandlerFunc(controllers.CreateJWTTokenEndpoint)
+	h.RefreshJWTTokenHandler = http.HandlerFunc(controllers.CreateJWTTokenEndpoint)
+
 	h.CreateUserHandler = http.HandlerFunc(controllers.CreateUserEndpoint)
 	h.GetUserHandler = http.HandlerFunc(controllers.GetUserEndpoint)
 	h.DeleteUserHandler = http.HandlerFunc(controllers.DeleteUserEndpoint)
+	h.GetUsersHandler = http.HandlerFunc(controllers.GetUsersEndpoint)
+
 	h.CreateCardHandler = http.HandlerFunc(controllers.CreateCardEndpoint)
 	h.GetAllCardsHandler = http.HandlerFunc(controllers.GetAllCardsEndpoint)
 	h.DeleteCardHandler = http.HandlerFunc(controllers.DeleteCardEndpoint)
 	h.GetCardsHandler = http.HandlerFunc(controllers.GetCardsEndpoint)
+
 	h.CreateBalanceHandler = http.HandlerFunc(controllers.CreateBalanceEndpoint)
 	h.GetBalanceHandler = http.HandlerFunc(controllers.GetBalanceEndpoint)
+
 	h.CreateSpendHandler = http.HandlerFunc(controllers.CreateSpendEndpoint)
 	return h
 }

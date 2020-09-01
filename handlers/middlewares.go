@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"mime"
 	"net/http"
+
+	jwt "github.com/dgrijalva/jwt-go"
 )
+
+var mySigninKey = []byte("myhellokey")
 
 // Middlewares defines middlewares to intercept handlers
 type Middlewares struct {
@@ -21,38 +25,59 @@ func GetMiddlewares() (m Middlewares) {
 
 // RequireContentTypeJSON enforces JSON content-type from requests
 func RequireContentTypeJSON(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		contentType := r.Header.Get("Content-Type")
-
-		fmt.Println(contentType)
+	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		contentType := request.Header.Get("Content-Type")
 
 		if contentType == "" {
-			http.Error(w, "Empty Content-Type header", http.StatusBadRequest)
+			http.Error(response, "Empty Content-Type header", http.StatusBadRequest)
 			return
 		}
 		if contentType != "" {
 			mt, _, err := mime.ParseMediaType(contentType)
 			if err != nil {
-				http.Error(w, "Malformed Content-Type header", http.StatusBadRequest)
+				http.Error(response, "Malformed Content-Type header", http.StatusBadRequest)
 				return
 			}
 
 			if mt != "application/json" {
-				http.Error(w, "Content-Type header must be application/json", http.StatusUnsupportedMediaType)
+				http.Error(response, "Content-Type header must be application/json", http.StatusUnsupportedMediaType)
 				return
 			}
 		}
 
-		h.ServeHTTP(w, r)
+		h.ServeHTTP(response, request)
 	})
 }
 
 // RequireTokenAuthentication enforces authentication token from requests
 func RequireTokenAuthentication(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		if request.Header["Token"] == nil {
+			response.WriteHeader(http.StatusBadRequest)
+			response.Write([]byte(`{"message": "missing JWT Token"}`))
+			return
+		}
 
-		fmt.Println("auth")
+		if request.Header["Token"] != nil {
+			token, err := jwt.Parse(request.Header["Token"][0], func(token *jwt.Token) (interface{}, error) {
+				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+					return nil, fmt.Errorf("could not decode token")
+				}
+				return mySigninKey, nil
+			})
 
-		h.ServeHTTP(w, r)
+			if err != nil {
+				response.WriteHeader(http.StatusUnauthorized)
+				response.Write([]byte(`{"message": "could not authenticate", "details": "` + err.Error() + `"}`))
+				return
+			}
+
+			if !token.Valid {
+				response.WriteHeader(http.StatusInternalServerError)
+				response.Write([]byte(`{"message": "token not valid"}`))
+			}
+		}
+
+		h.ServeHTTP(response, request)
 	})
 }
