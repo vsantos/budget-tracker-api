@@ -12,10 +12,10 @@ type Handlers struct {
 	CreateJWTTokenHandler  http.Handler
 	RefreshJWTTokenHandler http.Handler
 
+	GetUsersHandler   http.Handler
 	CreateUserHandler http.Handler
 	GetUserHandler    http.Handler
 	DeleteUserHandler http.Handler
-	GetUsersHandler   http.Handler
 
 	CreateCardHandler  http.Handler
 	GetAllCardsHandler http.Handler
@@ -36,9 +36,9 @@ func GetHandlers() (h Handlers) {
 	h.RefreshJWTTokenHandler = http.HandlerFunc(controllers.CreateJWTTokenEndpoint)
 
 	h.CreateUserHandler = http.HandlerFunc(controllers.CreateUserEndpoint)
+	h.GetUsersHandler = http.HandlerFunc(controllers.GetUsersEndpoint)
 	h.GetUserHandler = http.HandlerFunc(controllers.GetUserEndpoint)
 	h.DeleteUserHandler = http.HandlerFunc(controllers.DeleteUserEndpoint)
-	h.GetUsersHandler = http.HandlerFunc(controllers.GetUsersEndpoint)
 
 	h.CreateCardHandler = http.HandlerFunc(controllers.CreateCardEndpoint)
 	h.GetAllCardsHandler = http.HandlerFunc(controllers.GetAllCardsEndpoint)

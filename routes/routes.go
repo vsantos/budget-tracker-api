@@ -16,9 +16,9 @@ func InitRoutes(router *mux.Router) {
 	router.Handle("/api/v1/jwt/issue", m.JSON(h.CreateJWTTokenHandler)).Methods("POST")
 	router.Handle("/api/v1/jwt/refresh", m.JSON(h.CreateJWTTokenHandler)).Methods("POST")
 
-	router.Handle("/api/v1/user", m.JSON(m.Auth(h.CreateUserHandler))).Methods("POST")
-	router.Handle("/api/v1/user/{id}", m.JSON(m.Auth(h.GetUserHandler))).Methods("GET")
-	router.Handle("/api/v1/user/{id}", m.JSON(m.Auth(h.DeleteUserHandler))).Methods("DELETE")
+	router.Handle("/api/v1/users", m.JSON(m.Auth(h.CreateUserHandler))).Methods("POST")
+	router.Handle("/api/v1/users/{id}", m.JSON(m.Auth(h.GetUserHandler))).Methods("GET")
+	router.Handle("/api/v1/users/{id}", m.JSON(m.Auth(h.DeleteUserHandler))).Methods("DELETE")
 	router.Handle("/api/v1/users", m.JSON(m.Auth(h.GetUsersHandler))).Methods("GET")
 
 	router.Handle("/api/v1/cards", m.JSON(m.Auth(h.CreateCardHandler))).Methods("POST")

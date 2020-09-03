@@ -56,6 +56,11 @@ func GetAllCardsEndpoint(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	if len(cards) == 0 {
+		response.Write([]byte(`[]`))
+		return
+	}
+
 	json.NewEncoder(response).Encode(cards)
 }
 
@@ -68,6 +73,11 @@ func GetCardsEndpoint(response http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "` + err.Error() + `"}`))
+		return
+	}
+
+	if len(cards) == 0 {
+		response.Write([]byte(`[]`))
 		return
 	}
 
