@@ -54,13 +54,13 @@ func CreateJWTTokenEndpoint(response http.ResponseWriter, request *http.Request)
 
 	dbUser, err := models.GetUserByFilter("login", jwtUser.Login)
 	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		response.Write([]byte(`{"message": "could not create token", vim"details": "` + err.Error() + `"}`))
+		response.WriteHeader(http.StatusUnauthorized)
+		response.Write([]byte(`{"message": "invalid credentials for user '` + jwtUser.Login + `'"}`))
 		return
 	}
 
 	if dbUser.Login == "" || dbUser.SaltedPassword == "" {
-		response.WriteHeader(http.StatusNotFound)
+		response.WriteHeader(http.StatusUnauthorized)
 		response.Write([]byte(`{"message": "invalid credentials for user '` + jwtUser.Login + `'"}`))
 		return
 	}

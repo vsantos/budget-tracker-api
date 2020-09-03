@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mime"
 	"net/http"
+	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )
@@ -52,14 +53,20 @@ func RequireContentTypeJSON(h http.Handler) http.Handler {
 // RequireTokenAuthentication enforces authentication token from requests
 func RequireTokenAuthentication(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-		if request.Header["Token"] == nil {
+		if request.Header["Authorization"] == nil {
 			response.WriteHeader(http.StatusBadRequest)
-			response.Write([]byte(`{"message": "missing JWT Token"}`))
+			response.Write([]byte(`{"message": "missing 'Authorization' header"}`))
 			return
 		}
 
-		if request.Header["Token"] != nil {
-			token, err := jwt.Parse(request.Header["Token"][0], func(token *jwt.Token) (interface{}, error) {
+		if request.Header["Authorization"] != nil {
+			jwtString := strings.Split(request.Header["Authorization"][0], "Bearer ")
+			if len(jwtString) <= 1 {
+				response.WriteHeader(http.StatusUnauthorized)
+				response.Write([]byte(`{"message": "could not parse token", "details": "possible mistyped bearer token"}`))
+				return
+			}
+			token, err := jwt.Parse(jwtString[1], func(token *jwt.Token) (interface{}, error) {
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 					return nil, fmt.Errorf("could not decode token")
 				}

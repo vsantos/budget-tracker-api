@@ -11,7 +11,7 @@ func InitRoutes(router *mux.Router) {
 	m := handlers.GetMiddlewares()
 	h := handlers.GetHandlers()
 
-	router.Handle("/health", m.JSON(m.Auth(h.HealthCheckHandler))).Methods("GET")
+	router.Handle("/health", h.HealthCheckHandler).Methods("GET")
 
 	router.Handle("/api/v1/jwt/issue", m.JSON(h.CreateJWTTokenHandler)).Methods("POST")
 	router.Handle("/api/v1/jwt/refresh", m.JSON(h.CreateJWTTokenHandler)).Methods("POST")

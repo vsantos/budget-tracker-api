@@ -37,10 +37,11 @@ type JWTUser struct {
 
 // SanitizedUser defines a sanited user to GET purposes
 type SanitizedUser struct {
-	Login     string `json:"login" bson:"login"`
-	Firstname string `json:"firstname,omitempty" bson:"firstname,omitempty"`
-	Lastname  string `json:"lastname,omitempty" bson:"lastname,omitempty"`
-	Email     string `json:"email,omitempty" bson:"email,omitempty"`
+	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	Login     string             `json:"login" bson:"login"`
+	Firstname string             `json:"firstname,omitempty" bson:"firstname,omitempty"`
+	Lastname  string             `json:"lastname,omitempty" bson:"lastname,omitempty"`
+	Email     string             `json:"email,omitempty" bson:"email,omitempty"`
 }
 
 // CreditCard defines a user credit card
