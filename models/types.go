@@ -10,6 +10,7 @@ const (
 	mongodbUserCollection    = "users"
 	mongodbCardsCollection   = "cards"
 	mongodbBalanceCollection = "balance"
+	mongodbSpendsCollection  = "spends"
 )
 
 // Database creates a Database client
@@ -73,14 +74,14 @@ type PaymentMethod struct {
 	PaymentSlip bool       `json:"payment_slip,omitempty" bson:"payment_slip,omitempty"`
 }
 
-// Spends defines a user spend to be added to Balance
-type Spends struct {
+// Spend defines a user spend to be added to Balance
+type Spend struct {
 	ID            primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	OwnerID       primitive.ObjectID `json:"owner_id,omitempty" bson:"owner_id,omitempty"`
 	Type          string             `json:"type" bson:"type"`
 	Description   string             `json:"description" bson:"description"`
 	PaymentMethod PaymentMethod      `json:"payment_method,omitempty" bson:"payment_method,omitempty"`
-	Category      []string           `json:"category,omitempty" bson:"category,omitempty"`
+	Categories    []string           `json:"category,omitempty" bson:"category,omitempty"`
 	CreatedAt     primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
 }
 
@@ -91,7 +92,7 @@ type Balance struct {
 	Income          Income             `json:"income,omitempty" bson:"income,omitempty"`
 	Outcome         Outcome            `json:"outcome" bson:"outcome"`
 	SpendableAmount float64            `json:"spendable_amount" bson:"spendable_amount"`
-	Historic        []Spends           `json:"historic" bson:"historic"`
+	Historic        []Spend            `json:"historic" bson:"historic"`
 	Currency        string             `json:"currency" bson:"currency"`
 	Month           int64              `json:"month" bson:"month"`
 	Year            int64              `json:"year" bson:"year"`

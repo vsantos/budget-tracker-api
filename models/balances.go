@@ -39,7 +39,7 @@ func CreateBalance(b Balance) (id string, err error) {
 	t := time.Now()
 	b.CreatedAt = primitive.NewDateTimeFromTime(t)
 	b.SpendableAmount = b.Income.NetIncome
-	b.Historic = []Spends{}
+	b.Historic = []Spend{}
 
 	r, err := col.InsertOne(ctx, b)
 	if err != nil {

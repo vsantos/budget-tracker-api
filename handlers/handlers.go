@@ -25,6 +25,7 @@ type Handlers struct {
 	CreateBalanceHandler http.Handler
 	GetBalanceHandler    http.Handler
 
+	GetSpendsHandler   http.Handler
 	CreateSpendHandler http.Handler
 }
 
@@ -48,6 +49,7 @@ func GetHandlers() (h Handlers) {
 	h.CreateBalanceHandler = http.HandlerFunc(controllers.CreateBalanceEndpoint)
 	h.GetBalanceHandler = http.HandlerFunc(controllers.GetBalanceEndpoint)
 
+	h.GetSpendsHandler = http.HandlerFunc(controllers.GetSpendsEndpoint)
 	h.CreateSpendHandler = http.HandlerFunc(controllers.CreateSpendEndpoint)
 	return h
 }

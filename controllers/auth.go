@@ -5,6 +5,9 @@ import (
 	"budget-tracker/models"
 	"encoding/json"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
+
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -83,6 +86,7 @@ func CreateJWTTokenEndpoint(response http.ResponseWriter, request *http.Request)
 				return
 			}
 
+			log.Infof("created token for user '%s'", jwtUser.Login)
 			response.WriteHeader(http.StatusCreated)
 			response.Write([]byte(`{"type": "bearer", "refresh": "` + RefreshToken + `", "token": "` + AccessToken + `"}`))
 			return
