@@ -8,6 +8,7 @@ import (
 // Handlers struct defines all handlers used by backend
 type Handlers struct {
 	HealthCheckHandler http.Handler
+	SwaggerHandler     http.Handler
 
 	CreateJWTTokenHandler  http.Handler
 	RefreshJWTTokenHandler http.Handler
@@ -32,6 +33,7 @@ type Handlers struct {
 // GetHandlers will return all backend handlers initialized
 func GetHandlers() (h Handlers) {
 	h.HealthCheckHandler = http.HandlerFunc(controllers.HealthCheck)
+	h.SwaggerHandler = http.HandlerFunc(controllers.Swagger)
 
 	h.CreateJWTTokenHandler = http.HandlerFunc(controllers.CreateJWTTokenEndpoint)
 	h.RefreshJWTTokenHandler = http.HandlerFunc(controllers.CreateJWTTokenEndpoint)

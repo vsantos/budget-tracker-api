@@ -13,7 +13,7 @@ import (
 func InitDatabase() (c *mongo.Client, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017/")
+	clientOptions := options.Client().ApplyURI("mongodb://mongodb:27017/")
 	dbClient, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		cancel()

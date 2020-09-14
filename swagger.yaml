@@ -1,0 +1,52 @@
+basePath: /v2
+consumes:
+- application/json
+host: localhost
+info:
+  contact:
+    email: john.doe@example.com
+    name: John Doe
+    url: http://john.doe.com
+  description: |-
+    the purpose of this application is to provide an application
+    that is using plain go code to define an API
+
+    This should demonstrate all the possible comment annotations
+    that are available to turn go code into a fully compliant swagger 2.0 spec
+  license:
+    name: MIT
+    url: http://opensource.org/licenses/MIT
+  termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
+  title: Petstore API.
+  version: 0.0.1
+paths:
+  /api/v1/jwt/issue:
+    get:
+      consumes:
+      - application/json
+      description: Returns a JWT signed token to be used for the next 5 minutes
+      operationId: issue
+      parameters:
+      - description: tags to filter by
+        in: query
+        name: login
+        required: true
+        type: string
+      - description: tags to filter by
+        in: query
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: returned JWT token
+      tags:
+      - JWT
+produces:
+- application/json
+schemes:
+- http
+- https
+swagger: "2.0"
