@@ -1,5 +1,5 @@
 swagger-spec:
-	swagger generate spec -o ./swagger.yaml
+	swagger generate spec --scan-models -o ./swagger.yaml
 run:
 	go run main.go
 swagger-ui:

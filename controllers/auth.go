@@ -49,30 +49,6 @@ func GenerateJWTRefreshToken(sub string) (string, error) {
 
 // CreateJWTTokenEndpoint creates a token based on user credentials
 func CreateJWTTokenEndpoint(response http.ResponseWriter, request *http.Request) {
-	// swagger:operation GET /api/v1/jwt/issue JWT issue
-	//
-	// Returns a JWT signed token to be used for the next 5 minutes
-	// ---
-	// consumes:
-	// - application/json
-	// produces:
-	// - application/json
-	// parameters:
-	// - name: login
-	//   in: query
-	//   description: tags to filter by
-	//   required: true
-	//   type: string
-	// - name: password
-	//   in: query
-	//   description: tags to filter by
-	//   required: true
-	//   type: string
-	// responses:
-	//   '201':
-	//     description: returned JWT token
-	//     type: json
-
 	response.Header().Add("content-type", "application/json")
 
 	var jwtUser models.JWTUser

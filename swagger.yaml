@@ -1,12 +1,65 @@
-basePath: /v2
 consumes:
 - application/json
-host: localhost
+definitions:
+  DateTime:
+    format: int64
+    title: DateTime represents the BSON datetime value.
+    type: integer
+    x-go-package: go.mongodb.org/mongo-driver/bson/primitive
+  JWTUser:
+    description: JWTUser defines a user to generate JWT tokens
+    properties:
+      id:
+        $ref: '#/definitions/ObjectID'
+      login:
+        example: vsantos
+        type: string
+        x-go-name: Login
+      password:
+        example: myplaintextpassword
+        type: string
+        x-go-name: Password
+    type: object
+    x-go-package: budget-tracker/models
+  ObjectID:
+    items:
+      format: uint8
+      type: integer
+    title: ObjectID is the BSON ObjectID type.
+    type: array
+    x-go-package: go.mongodb.org/mongo-driver/bson/primitive
+  User:
+    description: User struct defines a user
+    properties:
+      created_at:
+        $ref: '#/definitions/DateTime'
+      email:
+        example: vsantos.py@gmail.com
+        type: string
+        x-go-name: Email
+      firstname:
+        example: Victor
+        type: string
+        x-go-name: Firstname
+      lastname:
+        example: Santos
+        type: string
+        x-go-name: Lastname
+      login:
+        example: vsantos
+        type: string
+        x-go-name: Login
+      password:
+        type: string
+        x-go-name: SaltedPassword
+    type: object
+    x-go-package: budget-tracker/models
+host: budget-tracker:8080
 info:
   contact:
-    email: john.doe@example.com
-    name: John Doe
-    url: http://john.doe.com
+    email: vsantos.py@gmail.com
+    name: Victor Santos
+    url: https://github.com/vsantos
   description: |-
     the purpose of this application is to provide an application
     that is using plain go code to define an API
@@ -17,33 +70,64 @@ info:
     name: MIT
     url: http://opensource.org/licenses/MIT
   termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
-  title: Petstore API.
+  title: Budget-tracker API.
   version: 0.0.1
 paths:
   /api/v1/jwt/issue:
-    get:
+    post:
       consumes:
       - application/json
       description: Returns a JWT signed token to be used for the next 5 minutes
       operationId: issue
       parameters:
-      - description: tags to filter by
-        in: query
-        name: login
+      - description: application/json
+        in: headers
+        name: content-type
         required: true
-        type: string
       - description: tags to filter by
-        in: query
-        name: password
+        in: body
+        name: body
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/JWTUser'
       produces:
       - application/json
       responses:
         "201":
           description: returned JWT token
+          examples:
+            application/json:
+              refresh: <REFRESH_TOKEN>
+              token: <JWT_TOKEN>
+              type: bearer
+        "401":
+          description: invalid credentials
+          examples:
+            application/json:
+              message: invalid credentials for user 'vsantos'
       tags:
       - JWT
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Returns the API can be considered operational
+      operationId: health
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: healthy components
+          examples:
+            application/json:
+              database: healthy
+        "500":
+          description: unhealthy components
+          examples:
+            application/json:
+              database: unhealthy
+      tags:
+      - Healthchecks
 produces:
 - application/json
 schemes:

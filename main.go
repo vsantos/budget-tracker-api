@@ -1,4 +1,4 @@
-// Package classification Petstore API.
+// Package classification Budget-tracker API.
 //
 // the purpose of this application is to provide an application
 // that is using plain go code to define an API
@@ -11,11 +11,11 @@
 // there are no TOS at this moment, use at your own risk we take no responsibility
 //
 //     Schemes: http, https
-//     Host: localhost
-//     BasePath: /v2
+//     Host: budget-tracker:8080
+//     BasePath:
 //     Version: 0.0.1
 //     License: MIT http://opensource.org/licenses/MIT
-//     Contact: John Doe<john.doe@example.com> http://john.doe.com
+//     Contact: Victor Santos<vsantos.py@gmail.com> https://github.com/vsantos
 //
 //     Consumes:
 //     - application/json

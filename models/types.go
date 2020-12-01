@@ -19,21 +19,30 @@ type Database struct {
 }
 
 // User struct defines a user
+// swagger:model
 type User struct {
-	ID             primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	Login          string             `json:"login" bson:"login"`
-	Firstname      string             `json:"firstname,omitempty" bson:"firstname,omitempty"`
-	Lastname       string             `json:"lastname,omitempty" bson:"lastname,omitempty"`
+	// swagger:ignore
+	ID primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	// example: vsantos
+	Login string `json:"login" bson:"login"`
+	// example: Victor
+	Firstname string `json:"firstname,omitempty" bson:"firstname,omitempty"`
+	// example: Santos
+	Lastname string `json:"lastname,omitempty" bson:"lastname,omitempty"`
+	// example: vsantos.py@gmail.com
 	Email          string             `json:"email,omitempty" bson:"email,omitempty"`
 	SaltedPassword string             `json:"password,omitempty" bson:"password,omitempty"`
 	CreatedAt      primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
 }
 
 // JWTUser defines a user to generate JWT tokens
+// swagger:model
 type JWTUser struct {
-	ID       primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	Login    string             `json:"login" bson:"login"`
-	Password string             `json:"password" bson:"password"`
+	ID primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	// example: vsantos
+	Login string `json:"login" bson:"login"`
+	// example: myplaintextpassword
+	Password string `json:"password" bson:"password"`
 }
 
 // SanitizedUser defines a sanited user to GET purposes
