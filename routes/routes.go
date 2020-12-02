@@ -11,12 +11,10 @@ func InitRoutes(router *mux.Router) {
 	m := handlers.GetMiddlewares()
 	h := handlers.GetHandlers()
 
-	// swagger:operation GET /health Healthchecks get
+	// swagger:operation GET /health Utils get
 	//
 	// Returns the API can be considered operational
 	// ---
-	// consumes:
-	// - application/json
 	// produces:
 	// - application/json
 	// responses:
@@ -24,15 +22,29 @@ func InitRoutes(router *mux.Router) {
 	//     description: healthy components
 	//     examples:
 	//       application/json: { "database": "healthy" }
+	//     type: json
 	//   '500':
 	//     description: unhealthy components
 	//     examples:
 	//       application/json: { "database": "unhealthy" }
 	//     type: json
 	router.Handle("/health", h.HealthCheckHandler).Methods("GET")
+
+	// swagger:operation GET /api/v1/swagger.yaml Utils get
+	//
+	// Returns the swagger yaml file to be get by swagger-ui or similar
+	// ---
+	// produces:
+	// - application/yaml
+	// responses:
+	//   '200':
+	//     description: found swagger document
+	//   '404':
+	//     description: could not find swagger document
+	//     type: json
 	router.Handle("/api/v1/swagger.yaml", h.SwaggerHandler).Methods("GET")
 
-	// swagger:operation POST /api/v1/jwt/issue JWT issue
+	// swagger:operation POST /api/v1/jwt/issue Authentication issue
 	//
 	// Returns a JWT signed token to be used for the next 5 minutes
 	// ---
@@ -56,6 +68,7 @@ func InitRoutes(router *mux.Router) {
 	//     description: returned JWT token
 	//     examples:
 	//       application/json: { "type": "bearer", "refresh": "<REFRESH_TOKEN>", "token": "<JWT_TOKEN>" }
+	//     type: json
 	//   '400':
 	//     description: bad request (missing one of params)
 	//     examples:
@@ -93,19 +106,221 @@ func InitRoutes(router *mux.Router) {
 	//     description: returned user
 	//     examples:
 	//       application/json: { "message": "created user '<USER_LOGIN>'", "id": "<USER_ID>" }
+	//     type: json
 	//   '500':
 	//     description: internal server error
 	//     examples:
 	//       application/json: { "message": "could not create user", "details": "<ERROR_DETAILS>" }
 	//     type: json
 	router.Handle("/api/v1/users", m.JSON(m.Auth(h.CreateUserHandler))).Methods("POST")
+
+	// swagger:operation GET /api/v1/users Users list
+	//
+	// List all users
+	// ---
+	// consumes:
+	// - application/json
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: content-type
+	//   in: headers
+	//   description: application/json
+	//   required: true
+	// responses:
+	//   '200':
+	//     description: users response
+	//     schema:
+	//       type: array
+	//       items:
+	//         "$ref": "#/definitions/SanitizedUser"
+	//     type: json
+	//   '500':
+	//     description: internal server error
+	//     examples:
+	//       application/json: { "message": "<ERROR_DETAILS>" }
+	//     type: json
 	router.Handle("/api/v1/users", m.JSON(m.Auth(h.GetUsersHandler))).Methods("GET")
+
+	// swagger:operation GET /api/v1/users/{id} Users get
+	//
+	// List a single user
+	// ---
+	// consumes:
+	// - application/json
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: content-type
+	//   in: headers
+	//   description: application/json
+	//   required: true
+	// - name: user_d
+	//   in: user_id
+	//   description: user id
+	//   required: true
+	// responses:
+	//   '200':
+	//     description: user response
+	//     schema:
+	//       type: json
+	//       items:
+	//         "$ref": "#/definitions/SanitizedUser"
+	//   '500':
+	//     description: internal server error
+	//     examples:
+	//       application/json: { "message": "<ERROR_DETAILS>" }
+	//     type: json
 	router.Handle("/api/v1/users/{id}", m.JSON(m.Auth(h.GetUserHandler))).Methods("GET")
+
+	// swagger:operation DELETE /api/v1/users/{id} Users delete
+	//
+	// Delete a single user
+	// ---
+	// consumes:
+	// - application/json
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: content-type
+	//   in: headers
+	//   description: application/json
+	//   required: true
+	// - name: id
+	//   in: id
+	//   description: user id
+	//   required: true
+	// responses:
+	//   '201':
+	//     description: deleted user
+	//     examples:
+	//       application/json: { "message": "deleted user '<USER_ID:>'" }
+	//     type: json
+	//   '500':
+	//     description: internal server error
+	//     examples:
+	//       application/json: { "message": "could not delete user", "details": "<ERROR_DETAILS>" }
+	//     type: json
 	router.Handle("/api/v1/users/{id}", m.JSON(m.Auth(h.DeleteUserHandler))).Methods("DELETE")
 
+	// swagger:operation POST /api/v1/cards Cards create
+	//
+	// Creates a single card
+	// ---
+	// consumes:
+	// - application/json
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: content-type
+	//   in: headers
+	//   description: application/json
+	//   required: true
+	// - name: body
+	//   in: body
+	//   description: cards payload
+	//   required: true
+	//   schema:
+	//     "$ref": "#/definitions/CreditCard"
+	// responses:
+	//   '201':
+	//     description: deleted user
+	//     examples:
+	//       application/json: { "message": "created card '<CARD_ALIAS>'", "id": "<CARD_ID>" }
+	//     type: json
+	//   '500':
+	//     description: internal server error
+	//     examples:
+	//       application/json: { "message": "could not create card", "details": "given network '<CARD_NETWORK>' is not a valid one" }
+	//     type: json
+	//   '500':
+	//     description: internal server error
+	//     examples:
+	//       application/json: { "message": "could not create card", "details": "<ERROR_DETAILS>" }
+	//     type: json
 	router.Handle("/api/v1/cards", m.JSON(m.Auth(h.CreateCardHandler))).Methods("POST")
+
+	// swagger:operation GET /api/v1/cards Cards list
+	//
+	// List all cards from platform
+	// ---
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: content-type
+	//   in: headers
+	//   description: application/json
+	//   required: true
+	// responses:
+	//   '200':
+	//     description: card response
+	//     schema:
+	//       type: array
+	//       items:
+	//         "$ref": "#/definitions/CreditCard"
+	//   '500':
+	//     description: internal server error
+	//     examples:
+	//       application/json: {"message": "<ERROR_DETAILS>"}
+	//     type: json
 	router.Handle("/api/v1/cards", m.JSON(m.Auth(h.GetAllCardsHandler))).Methods("GET")
+
+	// swagger:operation DELETE /api/v1/cards/{id} Cards delete
+	//
+	// Deletes a single card
+	// ---
+	// consumes:
+	// - application/json
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: content-type
+	//   in: headers
+	//   description: application/json
+	//   required: true
+	// - name: card_id
+	//   in: card_id
+	//   description: card id
+	//   required: true
+	// responses:
+	//   '201':
+	//     description: deleted card
+	//     examples:
+	//       application/json: { "message": "deleted card '<CARD_ID>'" }
+	//     type: json
+	//   '500':
+	//     description: internal server error
+	//     examples:
+	//       application/json: { "message": "could not delete card", "details": "<ERROR_DETAILS>" }
 	router.Handle("/api/v1/cards/{id}", m.JSON(m.Auth(h.DeleteCardHandler))).Methods("DELETE")
+
+	// swagger:operation GET /api/v1/cards/{owner_id} Cards list
+	//
+	// List all cards from a given owner
+	// ---
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: content-type
+	//   in: headers
+	//   description: application/json
+	//   required: true
+	// - name: owner_id
+	//   in: owner_id
+	//   description: owner id
+	//   required: true
+	// responses:
+	//   '200':
+	//     description: card response
+	//     schema:
+	//       type: array
+	//       items:
+	//         "$ref": "#/definitions/CreditCard"
+	//   '500':
+	//     description: internal server error
+	//     examples:
+	//       application/json: {"message": "<ERROR_DETAILS>"}
+	//     type: json
 	router.Handle("/api/v1/cards/{owner_id}", m.JSON(m.Auth(h.GetCardsHandler))).Methods("GET")
 
 	router.Handle("/api/v1/balance", m.JSON(m.Auth(h.CreateBalanceHandler))).Methods("POST")

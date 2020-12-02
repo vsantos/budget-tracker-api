@@ -48,6 +48,7 @@ type JWTUser struct {
 }
 
 // SanitizedUser defines a sanited user to GET purposes
+// swagger:model
 type SanitizedUser struct {
 	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Login     string             `json:"login" bson:"login"`
@@ -57,13 +58,20 @@ type SanitizedUser struct {
 }
 
 // CreditCard defines a user credit card
+// swagger:model
 type CreditCard struct {
-	ID         primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	OwnerID    primitive.ObjectID `json:"owner_id,omitempty" bson:"owner_id,omitempty"`
-	Alias      string             `json:"alias" bson:"alias"`
-	Network    string             `json:"network" bson:"network"`
-	LastDigits int32              `json:"last_digits" bson:"last_digits"`
-	CreatedAt  primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
+	// swagger:ignore
+	ID primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	// example: 5f4e76699c362be701856be6
+	OwnerID primitive.ObjectID `json:"owner_id,omitempty" bson:"owner_id,omitempty"`
+	// example: My Platinum Card
+	Alias string `json:"alias" bson:"alias"`
+	// example: VISA
+	Network string `json:"network" bson:"network"`
+	// example: 4214
+	LastDigits int32 `json:"last_digits" bson:"last_digits"`
+	// swagger:ignore
+	CreatedAt primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
 }
 
 // Income defines an user outcome for a certain month
@@ -78,6 +86,7 @@ type Outcome struct {
 	DynamicOutcome float64 `json:"dynamic" bson:"dynamic"`
 }
 
+// swagger:model
 // PaymentMethod defines which payment method was used for a certain spend
 type PaymentMethod struct {
 	Credit      CreditCard `json:"credit,omitempty" bson:"credit,omitempty"`
@@ -85,6 +94,7 @@ type PaymentMethod struct {
 	PaymentSlip bool       `json:"payment_slip,omitempty" bson:"payment_slip,omitempty"`
 }
 
+// swagger:model
 // Spend defines a user spend to be added to Balance
 type Spend struct {
 	ID            primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
@@ -96,6 +106,7 @@ type Spend struct {
 	CreatedAt     primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
 }
 
+// swagger:model
 // Balance defines an user balance
 type Balance struct {
 	ID              primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
