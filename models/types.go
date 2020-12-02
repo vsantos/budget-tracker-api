@@ -30,9 +30,11 @@ type User struct {
 	// example: Santos
 	Lastname string `json:"lastname,omitempty" bson:"lastname,omitempty"`
 	// example: vsantos.py@gmail.com
-	Email          string             `json:"email,omitempty" bson:"email,omitempty"`
-	SaltedPassword string             `json:"password,omitempty" bson:"password,omitempty"`
-	CreatedAt      primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
+	Email string `json:"email,omitempty" bson:"email,omitempty"`
+	// example: myplaintextpassword
+	SaltedPassword string `json:"password,omitempty" bson:"password,omitempty"`
+	// swagger:ignore
+	CreatedAt primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
 }
 
 // JWTUser defines a user to generate JWT tokens
