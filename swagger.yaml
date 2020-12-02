@@ -205,6 +205,79 @@ info:
   title: Budget-tracker API.
   version: 0.0.1
 paths:
+  /api/v1/balance:
+    post:
+      consumes:
+      - application/json
+      description: Creates a single balance for a given owner
+      operationId: create
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: balance owner_id
+        in: owner_id
+        name: owner_id
+        required: true
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: deleted user
+          examples:
+            application/json:
+              id: <BALANCE_ID>
+              message: created balance
+        "400":
+          description: bad request
+          examples:
+            application/json:
+              details: balances must have an 'owner_id'
+              message: could not create balance
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              details: <ERROR_DETAILS>
+              message: could not delete balance
+      tags:
+      - Balance
+  /api/v1/balance/{owner_id}:
+    get:
+      description: List all balances from a given owner or a single one given a month and year as query params
+      operationId: list
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: month
+        in: query
+        name: month
+      - description: year
+        in: query
+        name: year
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: balance response
+          schema:
+            items:
+              $ref: '#/definitions/Balance'
+            type: array
+        "404":
+          description: balance not found
+          examples:
+            application/json: {}
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              message: <ERROR_DETAILS>
+      tags:
+      - Balance
   /api/v1/cards:
     get:
       description: List all cards from platform

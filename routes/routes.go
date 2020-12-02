@@ -323,7 +323,75 @@ func InitRoutes(router *mux.Router) {
 	//     type: json
 	router.Handle("/api/v1/cards/{owner_id}", m.JSON(m.Auth(h.GetCardsHandler))).Methods("GET")
 
+	// swagger:operation POST /api/v1/balance Balance create
+	//
+	// Creates a single balance for a given owner
+	// ---
+	// consumes:
+	// - application/json
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: content-type
+	//   in: headers
+	//   description: application/json
+	//   required: true
+	// - name: owner_id
+	//   in: owner_id
+	//   description: balance owner_id
+	//   required: true
+	// responses:
+	//   '201':
+	//     description: deleted user
+	//     examples:
+	//       application/json: { "message": "created balance", "id": "<BALANCE_ID>" }
+	//     type: json
+	//   '400':
+	//     description: bad request
+	//     examples:
+	//       application/json: {"message": "could not create balance", "details": "balances must have an 'owner_id'"}
+	//     type: json
+	//   '500':
+	//     description: internal server error
+	//     examples:
+	//       application/json: { "message": "could not delete balance", "details": "<ERROR_DETAILS>" }
+	//     type: json
 	router.Handle("/api/v1/balance", m.JSON(m.Auth(h.CreateBalanceHandler))).Methods("POST")
+
+	// swagger:operation GET /api/v1/balance/{owner_id} Balance list
+	//
+	// List all balances from a given owner or a single one given a month and year as query params
+	// ---
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: content-type
+	//   in: headers
+	//   description: application/json
+	//   required: true
+	// - name: month
+	//   in: query
+	//   description: month
+	// - name: year
+	//   in: query
+	//   description: year
+	// responses:
+	//   '200':
+	//     description: balance response
+	//     schema:
+	//       type: array
+	//       items:
+	//         "$ref": "#/definitions/Balance"
+	//   '404':
+	//     description: balance not found
+	//     examples:
+	//       application/json: {}
+	//     type: json
+	//   '500':
+	//     description: internal server error
+	//     examples:
+	//       application/json: {"message": "<ERROR_DETAILS>"}
+	//     type: json
 	router.Handle("/api/v1/balance/{owner_id}", m.JSON(m.Auth(h.GetBalanceHandler))).Methods("GET")
 
 	router.Handle("/api/v1/spends", m.JSON(m.Auth(h.CreateSpendHandler))).Methods("POST")
