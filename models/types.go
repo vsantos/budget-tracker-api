@@ -38,7 +38,7 @@ type User struct {
 // JWTUser defines a user to generate JWT tokens
 // swagger:model
 type JWTUser struct {
-	ID primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	// ID primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	// example: vsantos
 	Login string `json:"login" bson:"login"`
 	// example: myplaintextpassword

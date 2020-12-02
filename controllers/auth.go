@@ -55,14 +55,14 @@ func CreateJWTTokenEndpoint(response http.ResponseWriter, request *http.Request)
 
 	_ = json.NewDecoder(request.Body).Decode(&jwtUser)
 
-	dbUser, err := models.GetUserByFilter("login", jwtUser.Login)
-	if err != nil {
-		response.WriteHeader(http.StatusUnauthorized)
-		response.Write([]byte(`{"message": "invalid credentials for user '` + jwtUser.Login + `'"}`))
+	if jwtUser.Login == "" || jwtUser.Password == "" {
+		response.WriteHeader(http.StatusBadRequest)
+		response.Write([]byte(`{"message": "empty required payload attributes"}`))
 		return
 	}
 
-	if dbUser.Login == "" || dbUser.SaltedPassword == "" {
+	dbUser, err := models.GetUserByFilter("login", jwtUser.Login)
+	if err != nil {
 		response.WriteHeader(http.StatusUnauthorized)
 		response.Write([]byte(`{"message": "invalid credentials for user '` + jwtUser.Login + `'"}`))
 		return

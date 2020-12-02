@@ -9,9 +9,8 @@ definitions:
   JWTUser:
     description: JWTUser defines a user to generate JWT tokens
     properties:
-      id:
-        $ref: '#/definitions/ObjectID'
       login:
+        description: ID primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
         example: vsantos
         type: string
         x-go-name: Login
@@ -21,13 +20,6 @@ definitions:
         x-go-name: Password
     type: object
     x-go-package: budget-tracker/models
-  ObjectID:
-    items:
-      format: uint8
-      type: integer
-    title: ObjectID is the BSON ObjectID type.
-    type: array
-    x-go-package: go.mongodb.org/mongo-driver/bson/primitive
   User:
     description: User struct defines a user
     properties:
@@ -84,7 +76,7 @@ paths:
         in: headers
         name: content-type
         required: true
-      - description: tags to filter by
+      - description: credentials
         in: body
         name: body
         required: true
@@ -100,6 +92,11 @@ paths:
               refresh: <REFRESH_TOKEN>
               token: <JWT_TOKEN>
               type: bearer
+        "400":
+          description: bad request (missing one of params)
+          examples:
+            application/json:
+              message: empty required payload attributes
         "401":
           description: invalid credentials
           examples:
@@ -107,12 +104,46 @@ paths:
               message: invalid credentials for user 'vsantos'
       tags:
       - JWT
+  /api/v1/users:
+    post:
+      consumes:
+      - application/json
+      description: Creates an user
+      operationId: create
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: user payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: returned user
+          examples:
+            application/json:
+              id: <USER_ID>
+              message: created user '<USER_LOGIN>'
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              details: <ERROR_DETAILS>
+              message: could not create user
+      tags:
+      - Users
   /health:
     get:
       consumes:
       - application/json
       description: Returns the API can be considered operational
-      operationId: health
+      operationId: get
       produces:
       - application/json
       responses:

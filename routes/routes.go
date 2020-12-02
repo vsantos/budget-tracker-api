@@ -11,7 +11,7 @@ func InitRoutes(router *mux.Router) {
 	m := handlers.GetMiddlewares()
 	h := handlers.GetHandlers()
 
-	// swagger:operation GET /health Healthchecks health
+	// swagger:operation GET /health Healthchecks get
 	//
 	// Returns the API can be considered operational
 	// ---
@@ -47,7 +47,7 @@ func InitRoutes(router *mux.Router) {
 	//   required: true
 	// - name: body
 	//   in: body
-	//   description: tags to filter by
+	//   description: credentials
 	//   required: true
 	//   schema:
 	//     "$ref": "#/definitions/JWTUser"
@@ -56,6 +56,11 @@ func InitRoutes(router *mux.Router) {
 	//     description: returned JWT token
 	//     examples:
 	//       application/json: { "type": "bearer", "refresh": "<REFRESH_TOKEN>", "token": "<JWT_TOKEN>" }
+	//   '400':
+	//     description: bad request (missing one of params)
+	//     examples:
+	//       application/json: { "message": "empty required payload attributes" }
+	//     type: json
 	//   '401':
 	//     description: invalid credentials
 	//     examples:
@@ -64,6 +69,35 @@ func InitRoutes(router *mux.Router) {
 	router.Handle("/api/v1/jwt/issue", m.JSON(h.CreateJWTTokenHandler)).Methods("POST")
 	router.Handle("/api/v1/jwt/refresh", m.JSON(h.CreateJWTTokenHandler)).Methods("POST")
 
+	// swagger:operation POST /api/v1/users Users create
+	//
+	// Creates an user
+	// ---
+	// consumes:
+	// - application/json
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: content-type
+	//   in: headers
+	//   description: application/json
+	//   required: true
+	// - name: body
+	//   in: body
+	//   description: user payload
+	//   required: true
+	//   schema:
+	//     "$ref": "#/definitions/User"
+	// responses:
+	//   '201':
+	//     description: returned user
+	//     examples:
+	//       application/json: { "message": "created user '<USER_LOGIN>'", "id": "<USER_ID>" }
+	//   '500':
+	//     description: internal server error
+	//     examples:
+	//       application/json: { "message": "could not create user", "details": "<ERROR_DETAILS>" }
+	//     type: json
 	router.Handle("/api/v1/users", m.JSON(m.Auth(h.CreateUserHandler))).Methods("POST")
 	router.Handle("/api/v1/users", m.JSON(m.Auth(h.GetUsersHandler))).Methods("GET")
 	router.Handle("/api/v1/users/{id}", m.JSON(m.Auth(h.GetUserHandler))).Methods("GET")
