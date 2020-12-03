@@ -1,0 +1,9 @@
+[
+    {
+        "login": "admin",
+        "firstname": "Temporary",
+        "lastname": "Seeded User",
+        "email": "admin@domain.com",
+        "password": "$2a$10$IjESPXqnHFuxh35mwRLglukiKO90SCrNbJ/kgrVe5YZO.FtAzFM2W"
+    }
+]

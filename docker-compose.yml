@@ -1,0 +1,29 @@
+version: '3.7'
+
+services:
+  budget-tracker:
+    build: .
+    ports:
+    - 8080:8080
+  mongodb:
+    image: mongo:4.4.0
+    container_name: mongodb
+    restart: always
+    ports:
+    - 27017:27017
+  mongo_seed:
+    build: ./docker/mongo-seed
+    links:
+      - mongodb
+    volumes:
+      - ./docker/mongo-seed:/mongo-seed
+    command:
+      /mongo-seed/import.sh
+  swagger_ui:
+    image: swaggerapi/swagger-ui:v3.33.0
+    environment:
+      - URL=http://budget-tracker:8080/api/v1/swagger.yaml
+    ports:
+    - 8081:8080
+    links:
+      - budget-tracker
