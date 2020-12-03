@@ -1,0 +1,664 @@
+consumes:
+- application/json
+definitions:
+  Balance:
+    properties:
+      created_at:
+        $ref: '#/definitions/DateTime'
+      currency:
+        type: string
+        x-go-name: Currency
+      historic:
+        items:
+          $ref: '#/definitions/Spend'
+        type: array
+        x-go-name: Historic
+      id:
+        $ref: '#/definitions/ObjectID'
+      income:
+        $ref: '#/definitions/Income'
+      month:
+        format: int64
+        type: integer
+        x-go-name: Month
+      outcome:
+        $ref: '#/definitions/Outcome'
+      owner_id:
+        $ref: '#/definitions/ObjectID'
+      spendable_amount:
+        format: double
+        type: number
+        x-go-name: SpendableAmount
+      year:
+        format: int64
+        type: integer
+        x-go-name: Year
+    type: object
+    x-go-package: budget-tracker/models
+  CreditCard:
+    description: CreditCard defines a user credit card
+    properties:
+      alias:
+        example: My Platinum Card
+        type: string
+        x-go-name: Alias
+      last_digits:
+        example: 4214
+        format: int32
+        type: integer
+        x-go-name: LastDigits
+      network:
+        example: VISA
+        type: string
+        x-go-name: Network
+      owner_id:
+        $ref: '#/definitions/ObjectID'
+    type: object
+    x-go-package: budget-tracker/models
+  DateTime:
+    format: int64
+    title: DateTime represents the BSON datetime value.
+    type: integer
+    x-go-package: go.mongodb.org/mongo-driver/bson/primitive
+  Income:
+    description: Income defines an user outcome for a certain month
+    properties:
+      gross:
+        format: double
+        type: number
+        x-go-name: GrossIncome
+      net:
+        format: double
+        type: number
+        x-go-name: NetIncome
+    type: object
+    x-go-package: budget-tracker/models
+  JWTUser:
+    description: JWTUser defines a user to generate JWT tokens
+    properties:
+      login:
+        description: ID primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+        example: vsantos
+        type: string
+        x-go-name: Login
+      password:
+        example: myplaintextpassword
+        type: string
+        x-go-name: Password
+    type: object
+    x-go-package: budget-tracker/models
+  ObjectID:
+    items:
+      format: uint8
+      type: integer
+    title: ObjectID is the BSON ObjectID type.
+    type: array
+    x-go-package: go.mongodb.org/mongo-driver/bson/primitive
+  Outcome:
+    description: Outcome defines an user outcome for a certain month
+    properties:
+      dynamic:
+        format: double
+        type: number
+        x-go-name: DynamicOutcome
+      fixed:
+        format: double
+        type: number
+        x-go-name: FixedOutcome
+    type: object
+    x-go-package: budget-tracker/models
+  PaymentMethod:
+    properties:
+      credit:
+        $ref: '#/definitions/CreditCard'
+      debit:
+        type: boolean
+        x-go-name: Debit
+      payment_slip:
+        type: boolean
+        x-go-name: PaymentSlip
+    type: object
+    x-go-package: budget-tracker/models
+  SanitizedUser:
+    description: SanitizedUser defines a sanited user to GET purposes
+    properties:
+      email:
+        type: string
+        x-go-name: Email
+      firstname:
+        type: string
+        x-go-name: Firstname
+      id:
+        $ref: '#/definitions/ObjectID'
+      lastname:
+        type: string
+        x-go-name: Lastname
+      login:
+        type: string
+        x-go-name: Login
+    type: object
+    x-go-package: budget-tracker/models
+  Spend:
+    properties:
+      category:
+        example: '"categories": ["personal development"]'
+        items:
+          type: string
+        type: array
+        x-go-name: Categories
+      description:
+        example: guitar lessons
+        type: string
+        x-go-name: Description
+      owner_id:
+        $ref: '#/definitions/ObjectID'
+      payment_method:
+        $ref: '#/definitions/PaymentMethod'
+      type:
+        example: fixed
+        type: string
+        x-go-name: Type
+    type: object
+    x-go-package: budget-tracker/models
+  User:
+    description: User struct defines a user
+    properties:
+      email:
+        example: vsantos.py@gmail.com
+        type: string
+        x-go-name: Email
+      firstname:
+        example: Victor
+        type: string
+        x-go-name: Firstname
+      lastname:
+        example: Santos
+        type: string
+        x-go-name: Lastname
+      login:
+        example: vsantos
+        type: string
+        x-go-name: Login
+      password:
+        example: myplaintextpassword
+        type: string
+        x-go-name: SaltedPassword
+    type: object
+    x-go-package: budget-tracker/models
+host: budget-tracker:8080
+info:
+  contact:
+    email: vsantos.py@gmail.com
+    name: Victor Santos
+    url: https://github.com/vsantos
+  description: |-
+    the purpose of this application is to provide an application
+    that is using plain go code to define an API
+
+    This should demonstrate all the possible comment annotations
+    that are available to turn go code into a fully compliant swagger 2.0 spec
+  license:
+    name: MIT
+    url: http://opensource.org/licenses/MIT
+  termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
+  title: Budget-tracker API.
+  version: 0.0.1
+paths:
+  /api/v1/balance:
+    post:
+      consumes:
+      - application/json
+      description: Creates a single balance for a given owner
+      operationId: create
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: balance owner_id
+        in: owner_id
+        name: owner_id
+        required: true
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: deleted user
+          examples:
+            application/json:
+              id: <BALANCE_ID>
+              message: created balance
+        "400":
+          description: bad request
+          examples:
+            application/json:
+              details: balances must have an 'owner_id'
+              message: could not create balance
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              details: <ERROR_DETAILS>
+              message: could not delete balance
+      tags:
+      - Balance
+  /api/v1/balance/{owner_id}:
+    get:
+      description: List all balances from a given owner or a single one given a month and year as query params
+      operationId: list
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: month
+        in: query
+        name: month
+      - description: year
+        in: query
+        name: year
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: balance response
+          schema:
+            items:
+              $ref: '#/definitions/Balance'
+            type: array
+        "404":
+          description: balance not found
+          examples:
+            application/json: {}
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              message: <ERROR_DETAILS>
+      tags:
+      - Balance
+  /api/v1/cards:
+    get:
+      description: List all cards from platform
+      operationId: list
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: card response
+          schema:
+            items:
+              $ref: '#/definitions/CreditCard'
+            type: array
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              message: <ERROR_DETAILS>
+      tags:
+      - Cards
+    post:
+      consumes:
+      - application/json
+      description: Creates a single card
+      operationId: create
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: cards payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/CreditCard'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: deleted user
+          examples:
+            application/json:
+              id: <CARD_ID>
+              message: created card '<CARD_ALIAS>'
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              details: <ERROR_DETAILS>
+              message: could not create card
+      tags:
+      - Cards
+  /api/v1/cards/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a single card
+      operationId: delete
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: card id
+        in: card_id
+        name: card_id
+        required: true
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: deleted card
+          examples:
+            application/json:
+              message: deleted card '<CARD_ID>'
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              details: <ERROR_DETAILS>
+              message: could not delete card
+      tags:
+      - Cards
+  /api/v1/cards/{owner_id}:
+    get:
+      description: List all cards from a given owner
+      operationId: list
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: owner id
+        in: owner_id
+        name: owner_id
+        required: true
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: card response
+          schema:
+            items:
+              $ref: '#/definitions/CreditCard'
+            type: array
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              message: <ERROR_DETAILS>
+      tags:
+      - Cards
+  /api/v1/jwt/issue:
+    post:
+      consumes:
+      - application/json
+      description: Returns a JWT signed token to be used for the next 5 minutes
+      operationId: issue
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/JWTUser'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: returned JWT token
+          examples:
+            application/json:
+              refresh: <REFRESH_TOKEN>
+              token: <JWT_TOKEN>
+              type: bearer
+        "400":
+          description: bad request (missing one of params)
+          examples:
+            application/json:
+              message: empty required payload attributes
+        "401":
+          description: invalid credentials
+          examples:
+            application/json:
+              message: invalid credentials for user 'vsantos'
+      tags:
+      - Authentication
+  /api/v1/spends:
+    post:
+      consumes:
+      - application/json
+      description: Creates a single balance for a given owner
+      operationId: create
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: balance owner_id
+        in: owner_id
+        name: owner_id
+        required: true
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: deleted user
+          examples:
+            application/json:
+              id: <SPEND_ID>
+              message: created spend to user '<OWNER_ID>'
+        "400":
+          description: bad request
+          examples:
+            application/json:
+              details: missing owner ID
+              message: could not create spend
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              details: <ERROR_DETAILS>
+              message: could not create spend
+      tags:
+      - Spends
+  /api/v1/spends/{owner_id}:
+    get:
+      description: Get all spends for a given owner id
+      operationId: list
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: month
+        in: query
+        name: month
+      - description: year
+        in: query
+        name: year
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: spends response
+          schema:
+            items:
+              $ref: '#/definitions/Spend'
+            type: array
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              message: <ERROR_DETAILS>
+      tags:
+      - Spends
+  /api/v1/swagger.yaml:
+    get:
+      description: Returns the swagger yaml file to be get by swagger-ui or similar
+      operationId: get
+      produces:
+      - application/yaml
+      responses:
+        "200":
+          description: found swagger document
+        "404":
+          description: could not find swagger document
+      tags:
+      - Utils
+  /api/v1/users:
+    get:
+      consumes:
+      - application/json
+      description: List all users
+      operationId: list
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: users response
+          schema:
+            items:
+              $ref: '#/definitions/SanitizedUser'
+            type: array
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              message: <ERROR_DETAILS>
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Creates an user
+      operationId: create
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: user payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: returned user
+          examples:
+            application/json:
+              id: <USER_ID>
+              message: created user '<USER_LOGIN>'
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              details: <ERROR_DETAILS>
+              message: could not create user
+      tags:
+      - Users
+  /api/v1/users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a single user
+      operationId: delete
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: user id
+        in: id
+        name: id
+        required: true
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: deleted user
+          examples:
+            application/json:
+              message: deleted user '<USER_ID:>'
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              details: <ERROR_DETAILS>
+              message: could not delete user
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: List a single user
+      operationId: get
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: user id
+        in: user_id
+        name: user_d
+        required: true
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: user response
+          schema:
+            items:
+              $ref: '#/definitions/SanitizedUser'
+            type: json
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              message: <ERROR_DETAILS>
+      tags:
+      - Users
+  /health:
+    get:
+      description: Returns the API can be considered operational
+      operationId: get
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: healthy components
+          examples:
+            application/json:
+              database: healthy
+        "500":
+          description: unhealthy components
+          examples:
+            application/json:
+              database: unhealthy
+      tags:
+      - Utils
+produces:
+- application/json
+schemes:
+- http
+- https
+swagger: "2.0"
