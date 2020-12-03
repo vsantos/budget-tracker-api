@@ -385,7 +385,7 @@ func InitRoutes(router *mux.Router) {
 	//   '404':
 	//     description: balance not found
 	//     examples:
-	//       application/json: {}
+	//       application/json: []
 	//     type: json
 	//   '500':
 	//     description: internal server error
@@ -394,6 +394,66 @@ func InitRoutes(router *mux.Router) {
 	//     type: json
 	router.Handle("/api/v1/balance/{owner_id}", m.JSON(m.Auth(h.GetBalanceHandler))).Methods("GET")
 
+	// swagger:operation POST /api/v1/spends Spends create
+	//
+	// Creates a single spend for a given owner
+	// ---
+	// consumes:
+	// - application/json
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: content-type
+	//   in: headers
+	//   description: application/json
+	//   required: true
+	// - name: owner_id
+	//   in: owner_id
+	//   description: spend owner_id
+	//   required: true
+	// responses:
+	//   '201':
+	//     description: deleted user
+	//     examples:
+	//       application/json: { "message": "created spend to user '<OWNER_ID>'", "id": "<SPEND_ID>"}
+	//     type: json
+	//   '400':
+	//     description: bad request
+	//     examples:
+	//       application/json: {"message": "could not create spend", "details": "missing owner ID"}
+	//     type: json
+	//   '500':
+	//     description: internal server error
+	//     examples:
+	//       application/json: { "message": "could not create spend", "details": "<ERROR_DETAILS>" }
+	//     type: json
 	router.Handle("/api/v1/spends", m.JSON(m.Auth(h.CreateSpendHandler))).Methods("POST")
+
+	// swagger:operation GET /api/v1/spends/{owner_id} Spends list
+	//
+	// Get all spends for a given owner id
+	// ---
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: content-type
+	//   in: headers
+	//   description: application/json
+	//   required: true
+	// - name: owner_id
+	//   in: owner_id
+	//   description: owner id
+	// responses:
+	//   '200':
+	//     description: spends response
+	//     schema:
+	//       type: array
+	//       items:
+	//         "$ref": "#/definitions/Spend"
+	//   '500':
+	//     description: internal server error
+	//     examples:
+	//       application/json: {"message": "<ERROR_DETAILS>"}
+	//     type: json
 	router.Handle("/api/v1/spends/{owner_id}", m.JSON(m.Auth(h.GetSpendsHandler))).Methods("GET")
 }

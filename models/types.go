@@ -94,15 +94,31 @@ type PaymentMethod struct {
 	PaymentSlip bool       `json:"payment_slip,omitempty" bson:"payment_slip,omitempty"`
 }
 
+{
+	"owner_id": "5f50422eee93e1fcbaa69438",
+	"type": "fixed",
+	"description": "Another school",
+	"payment_method": {
+		"debit": true
+	},
+	"categories": ["car"]
+}
+
 // swagger:model
 // Spend defines a user spend to be added to Balance
 type Spend struct {
+	// swagger:ignore
 	ID            primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	OwnerID       primitive.ObjectID `json:"owner_id,omitempty" bson:"owner_id,omitempty"`
+	// example: fixed
 	Type          string             `json:"type" bson:"type"`
+	// example: guitar lessons
 	Description   string             `json:"description" bson:"description"`
+	// example: debit: true
 	PaymentMethod PaymentMethod      `json:"payment_method,omitempty" bson:"payment_method,omitempty"`
+	// example: "categories": ["personal development"]
 	Categories    []string           `json:"category,omitempty" bson:"category,omitempty"`
+	// swagger:ignore
 	CreatedAt     primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
 }
 

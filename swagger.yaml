@@ -141,22 +141,21 @@ definitions:
   Spend:
     properties:
       category:
+        example: '"categories": ["personal development"]'
         items:
           type: string
         type: array
         x-go-name: Categories
-      created_at:
-        $ref: '#/definitions/DateTime'
       description:
+        example: guitar lessons
         type: string
         x-go-name: Description
-      id:
-        $ref: '#/definitions/ObjectID'
       owner_id:
         $ref: '#/definitions/ObjectID'
       payment_method:
         $ref: '#/definitions/PaymentMethod'
       type:
+        example: fixed
         type: string
         x-go-name: Type
     type: object
@@ -435,6 +434,75 @@ paths:
               message: invalid credentials for user 'vsantos'
       tags:
       - Authentication
+  /api/v1/spends:
+    post:
+      consumes:
+      - application/json
+      description: Creates a single balance for a given owner
+      operationId: create
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: balance owner_id
+        in: owner_id
+        name: owner_id
+        required: true
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: deleted user
+          examples:
+            application/json:
+              id: <SPEND_ID>
+              message: created spend to user '<OWNER_ID>'
+        "400":
+          description: bad request
+          examples:
+            application/json:
+              details: missing owner ID
+              message: could not create spend
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              details: <ERROR_DETAILS>
+              message: could not create spend
+      tags:
+      - Spends
+  /api/v1/spends/{owner_id}:
+    get:
+      description: Get all spends for a given owner id
+      operationId: list
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: month
+        in: query
+        name: month
+      - description: year
+        in: query
+        name: year
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: spends response
+          schema:
+            items:
+              $ref: '#/definitions/Spend'
+            type: array
+        "500":
+          description: internal server error
+          examples:
+            application/json:
+              message: <ERROR_DETAILS>
+      tags:
+      - Spends
   /api/v1/swagger.yaml:
     get:
       description: Returns the swagger yaml file to be get by swagger-ui or similar
