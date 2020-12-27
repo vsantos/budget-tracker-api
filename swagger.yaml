@@ -83,7 +83,7 @@ definitions:
         x-go-name: RefreshToken
       token:
         type: string
-        x-go-name: Token
+        x-go-name: AccessToken
       type:
         type: string
         x-go-name: Type
@@ -417,6 +417,14 @@ paths:
           examples:
             application/json:
               message: <ERROR_DETAILS>
+      tags:
+      - Cards
+    options:
+      description: OPTIONS
+      operationId: list
+      responses:
+        "200":
+          description: returned options
       tags:
       - Cards
   /api/v1/jwt/issue:
