@@ -73,6 +73,22 @@ definitions:
         x-go-name: NetIncome
     type: object
     x-go-package: budget-tracker/models
+  JWTResponse:
+    description: JWTResponse returns as HTTP response the user details (to be used along with the generated JWT token)
+    properties:
+      details:
+        $ref: '#/definitions/SanitizedUser'
+      refresh:
+        type: string
+        x-go-name: RefreshToken
+      token:
+        type: string
+        x-go-name: Token
+      type:
+        type: string
+        x-go-name: Type
+    type: object
+    x-go-package: budget-tracker/models
   JWTUser:
     description: JWTUser defines a user to generate JWT tokens
     properties:
@@ -269,7 +285,7 @@ paths:
         "404":
           description: balance not found
           examples:
-            application/json: {}
+            application/json: []
         "500":
           description: internal server error
           examples:
@@ -300,6 +316,14 @@ paths:
           examples:
             application/json:
               message: <ERROR_DETAILS>
+      tags:
+      - Cards
+    options:
+      description: OPTIONS
+      operationId: options
+      responses:
+        "200":
+          description: returned options
       tags:
       - Cards
     post:
@@ -396,6 +420,14 @@ paths:
       tags:
       - Cards
   /api/v1/jwt/issue:
+    options:
+      description: OPTIONS
+      operationId: options
+      responses:
+        "200":
+          description: returned options
+      tags:
+      - Authentication
     post:
       consumes:
       - application/json
@@ -438,14 +470,14 @@ paths:
     post:
       consumes:
       - application/json
-      description: Creates a single balance for a given owner
+      description: Creates a single spend for a given owner
       operationId: create
       parameters:
       - description: application/json
         in: headers
         name: content-type
         required: true
-      - description: balance owner_id
+      - description: spend owner_id
         in: owner_id
         name: owner_id
         required: true
@@ -481,12 +513,9 @@ paths:
         in: headers
         name: content-type
         required: true
-      - description: month
-        in: query
-        name: month
-      - description: year
-        in: query
-        name: year
+      - description: owner id
+        in: owner_id
+        name: owner_id
       produces:
       - application/json
       responses:

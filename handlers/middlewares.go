@@ -27,21 +27,26 @@ func GetMiddlewares() (m Middlewares) {
 // RequireContentTypeJSON enforces JSON content-type from requests
 func RequireContentTypeJSON(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		response.Header().Set("Access-Control-Allow-Origin", "*")
+
 		contentType := request.Header.Get("Content-Type")
 
 		if contentType == "" {
-			http.Error(response, "Empty Content-Type header", http.StatusBadRequest)
+			response.WriteHeader(http.StatusBadRequest)
+			response.Write([]byte(`{"message": "empty Content-Type header"}`))
 			return
 		}
 		if contentType != "" {
 			mt, _, err := mime.ParseMediaType(contentType)
 			if err != nil {
-				http.Error(response, "Malformed Content-Type header", http.StatusBadRequest)
+				response.WriteHeader(http.StatusBadRequest)
+				response.Write([]byte(`{"message": "malformed Content-Type header"}`))
 				return
 			}
 
 			if mt != "application/json" {
-				http.Error(response, "Content-Type header must be application/json", http.StatusUnsupportedMediaType)
+				response.WriteHeader(http.StatusUnsupportedMediaType)
+				response.Write([]byte(`{"message": "content-Type header must be application/json"}`))
 				return
 			}
 		}
@@ -53,6 +58,8 @@ func RequireContentTypeJSON(h http.Handler) http.Handler {
 // RequireTokenAuthentication enforces authentication token from requests
 func RequireTokenAuthentication(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		response.Header().Set("Access-Control-Allow-Origin", "*")
+
 		if request.Header["Authorization"] == nil {
 			response.WriteHeader(http.StatusBadRequest)
 			response.Write([]byte(`{"message": "missing 'Authorization' header"}`))

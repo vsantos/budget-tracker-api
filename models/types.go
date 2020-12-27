@@ -47,6 +47,15 @@ type JWTUser struct {
 	Password string `json:"password" bson:"password"`
 }
 
+// JWTResponse returns as HTTP response the user details (to be used along with the generated JWT token)
+// swagger:model
+type JWTResponse struct {
+	Type         string        `json:"type"`
+	RefreshToken string        `json:"refresh"`
+	AccessToken  string        `json:"token"`
+	Details      SanitizedUser `json:"details,omitempty"`
+}
+
 // SanitizedUser defines a sanited user to GET purposes
 // swagger:model
 type SanitizedUser struct {

@@ -4,7 +4,7 @@ services:
   budget-tracker:
     build: .
     ports:
-    - 8080:8080
+    - 5000:8080
   mongodb:
     image: mongo:4.4.0
     container_name: mongodb

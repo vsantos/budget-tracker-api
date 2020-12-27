@@ -10,7 +10,7 @@ import (
 
 // validateCardNetwork will validate if a card's network is an allowed one
 func validateCardNetwork(network string) bool {
-	networks := []string{"VISA", "MASTERCARD", "ELO", "VR", "TICKET"}
+	networks := []string{"visa", "mastercard", "elo", "vr", "ticket"}
 	for _, n := range networks {
 		if network == n {
 			return true
@@ -22,6 +22,7 @@ func validateCardNetwork(network string) bool {
 // CreateCardEndpoint will create a single card to an user
 func CreateCardEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
+	response.Header().Set("Access-Control-Allow-Origin", "*")
 
 	var card models.CreditCard
 
@@ -29,7 +30,7 @@ func CreateCardEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	validNetwork := validateCardNetwork(card.Network)
 	if !validNetwork {
-		response.WriteHeader(http.StatusInternalServerError)
+		response.WriteHeader(http.StatusBadRequest)
 		response.Write([]byte(`{"message": "could not create card", "details": "given network '` + card.Network + `' is not a valid one"}`))
 		return
 	}
@@ -48,6 +49,7 @@ func CreateCardEndpoint(response http.ResponseWriter, request *http.Request) {
 // GetAllCardsEndpoint will return all cards from database
 func GetAllCardsEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
+	response.Header().Set("Access-Control-Allow-Origin", "*")
 
 	cards, err := models.GetAllCards()
 	if err != nil {
@@ -67,6 +69,8 @@ func GetAllCardsEndpoint(response http.ResponseWriter, request *http.Request) {
 // GetCardsEndpoint will return all cards from a given user
 func GetCardsEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
+	response.Header().Set("Access-Control-Allow-Origin", "*")
+
 	params := mux.Vars(request)
 
 	cards, err := models.GetCards(params["owner_id"])
@@ -87,6 +91,7 @@ func GetCardsEndpoint(response http.ResponseWriter, request *http.Request) {
 // DeleteCardEndpoint deletes a card given an ID
 func DeleteCardEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
+	response.Header().Set("Access-Control-Allow-Origin", "*")
 
 	params := mux.Vars(request)
 

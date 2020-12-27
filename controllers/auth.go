@@ -50,6 +50,7 @@ func GenerateJWTRefreshToken(sub string) (string, error) {
 // CreateJWTTokenEndpoint creates a token based on user credentials
 func CreateJWTTokenEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
+	response.Header().Set("Access-Control-Allow-Origin", "*")
 
 	var jwtUser models.JWTUser
 
@@ -88,7 +89,23 @@ func CreateJWTTokenEndpoint(response http.ResponseWriter, request *http.Request)
 
 			log.Infof("created token for user '%s'", jwtUser.Login)
 			response.WriteHeader(http.StatusCreated)
-			response.Write([]byte(`{"type": "bearer", "refresh": "` + RefreshToken + `", "token": "` + AccessToken + `"}`))
+
+			var jwtResponse models.JWTResponse
+			jwtResponse.Type = "bearer"
+			jwtResponse.RefreshToken = RefreshToken
+			jwtResponse.AccessToken = AccessToken
+			jwtResponse.Details.ID = dbUser.ID
+			jwtResponse.Details.Login = dbUser.Login
+			jwtResponse.Details.Firstname = dbUser.Firstname
+			jwtResponse.Details.Lastname = dbUser.Lastname
+			jwtResponse.Details.Email = dbUser.Email
+
+			jwtResponseJSON, err := json.Marshal(jwtResponse)
+			response.Write(jwtResponseJSON)
+			if err != nil {
+				log.Errorf("could not marshal JWT response for user '%s'", jwtUser.Login)
+				response.Write([]byte(`{"message": "could not create access token", "details": "could not marshal JWT response"}`))
+			}
 			return
 		}
 	}
