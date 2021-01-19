@@ -222,7 +222,7 @@ info:
     url: http://opensource.org/licenses/MIT
   termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
   title: Budget-tracker API.
-  version: 0.0.1
+  version: 0.0.2
 paths:
   /api/v1/balance:
     post:
