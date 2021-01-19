@@ -42,8 +42,12 @@ definitions:
         example: My Platinum Card
         type: string
         x-go-name: Alias
+      color:
+        example: '#ffffff'
+        type: string
+        x-go-name: Color
       last_digits:
-        example: 4214
+        example: 1234
         format: int32
         type: integer
         x-go-name: LastDigits
@@ -71,6 +75,22 @@ definitions:
         format: double
         type: number
         x-go-name: NetIncome
+    type: object
+    x-go-package: budget-tracker/models
+  JWTResponse:
+    description: JWTResponse returns as HTTP response the user details (to be used along with the generated JWT token)
+    properties:
+      details:
+        $ref: '#/definitions/SanitizedUser'
+      refresh:
+        type: string
+        x-go-name: RefreshToken
+      token:
+        type: string
+        x-go-name: AccessToken
+      type:
+        type: string
+        x-go-name: Type
     type: object
     x-go-package: budget-tracker/models
   JWTUser:
@@ -302,6 +322,14 @@ paths:
               message: <ERROR_DETAILS>
       tags:
       - Cards
+    options:
+      description: OPTIONS
+      operationId: options
+      responses:
+        "200":
+          description: returned options
+      tags:
+      - Cards
     post:
       consumes:
       - application/json
@@ -395,7 +423,23 @@ paths:
               message: <ERROR_DETAILS>
       tags:
       - Cards
+    options:
+      description: OPTIONS
+      operationId: list
+      responses:
+        "200":
+          description: returned options
+      tags:
+      - Cards
   /api/v1/jwt/issue:
+    options:
+      description: OPTIONS
+      operationId: options
+      responses:
+        "200":
+          description: returned options
+      tags:
+      - Authentication
     post:
       consumes:
       - application/json

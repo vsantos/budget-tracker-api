@@ -47,6 +47,15 @@ type JWTUser struct {
 	Password string `json:"password" bson:"password"`
 }
 
+// JWTResponse returns as HTTP response the user details (to be used along with the generated JWT token)
+// swagger:model
+type JWTResponse struct {
+	Type         string        `json:"type"`
+	RefreshToken string        `json:"refresh"`
+	AccessToken  string        `json:"token"`
+	Details      SanitizedUser `json:"details,omitempty"`
+}
+
 // SanitizedUser defines a sanited user to GET purposes
 // swagger:model
 type SanitizedUser struct {
@@ -68,7 +77,9 @@ type CreditCard struct {
 	Alias string `json:"alias" bson:"alias"`
 	// example: VISA
 	Network string `json:"network" bson:"network"`
-	// example: 4214
+	// example: #ffffff
+	Color string `json:"color" bson:"color"`
+	// example: 1234
 	LastDigits int32 `json:"last_digits" bson:"last_digits"`
 	// swagger:ignore
 	CreatedAt primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`

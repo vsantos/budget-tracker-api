@@ -10,6 +10,7 @@ type Handlers struct {
 	HealthCheckHandler http.Handler
 	SwaggerHandler     http.Handler
 
+	OptionsJWTTokenHandler http.Handler
 	CreateJWTTokenHandler  http.Handler
 	RefreshJWTTokenHandler http.Handler
 
@@ -18,10 +19,11 @@ type Handlers struct {
 	GetUserHandler    http.Handler
 	DeleteUserHandler http.Handler
 
-	CreateCardHandler  http.Handler
-	GetAllCardsHandler http.Handler
-	DeleteCardHandler  http.Handler
-	GetCardsHandler    http.Handler
+	OptionsCardsHandler http.Handler
+	CreateCardHandler   http.Handler
+	GetAllCardsHandler  http.Handler
+	DeleteCardHandler   http.Handler
+	GetCardsHandler     http.Handler
 
 	CreateBalanceHandler http.Handler
 	GetBalanceHandler    http.Handler
@@ -35,6 +37,7 @@ func GetHandlers() (h Handlers) {
 	h.HealthCheckHandler = http.HandlerFunc(controllers.HealthCheck)
 	h.SwaggerHandler = http.HandlerFunc(controllers.Swagger)
 
+	h.OptionsJWTTokenHandler = http.HandlerFunc(controllers.JWTTokenOptionsEndpoint)
 	h.CreateJWTTokenHandler = http.HandlerFunc(controllers.CreateJWTTokenEndpoint)
 	h.RefreshJWTTokenHandler = http.HandlerFunc(controllers.CreateJWTTokenEndpoint)
 
@@ -43,6 +46,7 @@ func GetHandlers() (h Handlers) {
 	h.GetUserHandler = http.HandlerFunc(controllers.GetUserEndpoint)
 	h.DeleteUserHandler = http.HandlerFunc(controllers.DeleteUserEndpoint)
 
+	h.OptionsCardsHandler = http.HandlerFunc(controllers.CardsOptionsEndpoint)
 	h.CreateCardHandler = http.HandlerFunc(controllers.CreateCardEndpoint)
 	h.GetAllCardsHandler = http.HandlerFunc(controllers.GetAllCardsEndpoint)
 	h.DeleteCardHandler = http.HandlerFunc(controllers.DeleteCardEndpoint)

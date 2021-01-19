@@ -80,6 +80,16 @@ func InitRoutes(router *mux.Router) {
 	//       application/json: { "message": "invalid credentials for user 'vsantos'" }
 	//     type: json
 	router.Handle("/api/v1/jwt/issue", m.JSON(h.CreateJWTTokenHandler)).Methods("POST")
+
+	// swagger:operation OPTIONS /api/v1/jwt/issue Authentication options
+	//
+	// OPTIONS
+	// ---
+	// responses:
+	//   '200':
+	//     description: returned options
+	router.Handle("/api/v1/jwt/issue", h.OptionsJWTTokenHandler).Methods("OPTIONS")
+
 	router.Handle("/api/v1/jwt/refresh", m.JSON(h.CreateJWTTokenHandler)).Methods("POST")
 
 	// swagger:operation POST /api/v1/users Users create
@@ -240,6 +250,15 @@ func InitRoutes(router *mux.Router) {
 	//     type: json
 	router.Handle("/api/v1/cards", m.JSON(m.Auth(h.CreateCardHandler))).Methods("POST")
 
+	// swagger:operation OPTIONS /api/v1/cards Cards options
+	//
+	// OPTIONS
+	// ---
+	// responses:
+	//   '200':
+	//     description: returned options
+	router.Handle("/api/v1/cards", h.OptionsCardsHandler).Methods("OPTIONS")
+
 	// swagger:operation GET /api/v1/cards Cards list
 	//
 	// List all cards from platform
@@ -293,6 +312,15 @@ func InitRoutes(router *mux.Router) {
 	//     examples:
 	//       application/json: { "message": "could not delete card", "details": "<ERROR_DETAILS>" }
 	router.Handle("/api/v1/cards/{id}", m.JSON(m.Auth(h.DeleteCardHandler))).Methods("DELETE")
+
+	// swagger:operation OPTIONS /api/v1/cards/{owner_id} Cards list
+	//
+	// OPTIONS
+	// ---
+	// responses:
+	//   '200':
+	//     description: returned options
+	router.Handle("/api/v1/cards/{owner_id}", h.OptionsCardsHandler).Methods("OPTIONS")
 
 	// swagger:operation GET /api/v1/cards/{owner_id} Cards list
 	//
