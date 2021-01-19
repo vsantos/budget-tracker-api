@@ -77,7 +77,9 @@ type CreditCard struct {
 	Alias string `json:"alias" bson:"alias"`
 	// example: VISA
 	Network string `json:"network" bson:"network"`
-	// example: 4214
+	// example: #ffffff
+	Color string `json:"color" bson:"color"`
+	// example: 1234
 	LastDigits int32 `json:"last_digits" bson:"last_digits"`
 	// swagger:ignore
 	CreatedAt primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`

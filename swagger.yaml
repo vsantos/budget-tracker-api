@@ -42,8 +42,12 @@ definitions:
         example: My Platinum Card
         type: string
         x-go-name: Alias
+      color:
+        example: '#ffffff'
+        type: string
+        x-go-name: Color
       last_digits:
-        example: 4214
+        example: 1234
         format: int32
         type: integer
         x-go-name: LastDigits

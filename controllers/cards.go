@@ -102,6 +102,6 @@ func DeleteCardEndpoint(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	response.WriteHeader(http.StatusCreated)
+	response.WriteHeader(http.StatusOK)
 	response.Write([]byte(`{"message": "deleted card '` + params["id"] + `'"}`))
 }
