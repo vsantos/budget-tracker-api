@@ -27,6 +27,7 @@
 package main
 
 import (
+	"budget-tracker/observability"
 	"budget-tracker/routes"
 	"net/http"
 
@@ -45,10 +46,16 @@ func init() {
 func main() {
 	log.Infoln("Started Application at port", port)
 
+	p, err := observability.JaegerTracerProvider("budget-tracker-api", "http://jaeger:14268/api/traces")
+	if err != nil {
+		log.Fatal(err)
+	}
+	observability.InitTrace(p)
+
 	router := mux.NewRouter()
 	routes.InitRoutes(router)
 
-	err := http.ListenAndServe(port, router)
+	err = http.ListenAndServe(port, router)
 	if err != nil {
 		log.Errorln(err)
 	}

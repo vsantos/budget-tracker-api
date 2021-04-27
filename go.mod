@@ -1,6 +1,6 @@
 module budget-tracker
 
-go 1.14
+go 1.16
 
 require (
 	github.com/apache/thrift v0.13.0 // indirect
@@ -19,5 +19,10 @@ require (
 	github.com/tinylib/msgp v1.1.2 // indirect
 	go.mongodb.org/mongo-driver v1.4.0
 	go.opencensus.io v0.22.4
+	go.opentelemetry.io/otel v0.20.0
+	go.opentelemetry.io/otel/exporters/stdout v0.20.0
+	go.opentelemetry.io/otel/exporters/trace/jaeger v0.20.0
+	go.opentelemetry.io/otel/sdk v0.20.0
+	go.opentelemetry.io/otel/trace v0.20.0
 	golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8
 )

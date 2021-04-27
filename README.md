@@ -20,4 +20,14 @@ This application uses go-swagger to generate swagger specs directly from the cod
 
 `make swagger-spec`
 
-The output will be a local `swagger.yaml` file which can be used along with external applications such as insomnia designer. In case of side-by-side UI containers such as `swagger-ui` you can serve the following endpoint: `/swagger.yaml`
+The output will be a local `./docs/swagger.yaml` file which can be used along with external applications such as insomnia designer. In case of side-by-side UI containers such as `swagger-ui` you can serve the following endpoint: `/swagger.yaml`
+
+## Insomnia
+
+Download `./docs/insomnia.json` file and upload it to your insomnia application in order to get all endpoints to be tested
+
+# Observability
+
+## Opentelemetry
+
+This application supports opentelemetry and currently is using `jaeger` exporter
