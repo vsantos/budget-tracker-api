@@ -89,7 +89,10 @@ func GetUser(parentCtx context.Context, id string) (u *User, err error) {
 }
 
 // GetUserByFilter will return a user from database based on key,pair BSON
-func GetUserByFilter(bsonKey string, bsonValue string) (u *User, err error) {
+func GetUserByFilter(parentCtx context.Context, bsonKey string, bsonValue string) (u *User, err error) {
+	ctx, span := observability.Span(parentCtx, "mongodb", "getUser", []attribute.KeyValue{})
+	defer span.End()
+
 	dbClient, err := services.InitDatabase()
 	if err != nil {
 		return &User{}, err
@@ -98,7 +101,7 @@ func GetUserByFilter(bsonKey string, bsonValue string) (u *User, err error) {
 	var user User
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbUserCollection)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(parentCtx, 5*time.Second)
 
 	err = col.FindOne(ctx, bson.M{bsonKey: bsonValue}).Decode(&user)
 	if err != nil {
@@ -106,6 +109,8 @@ func GetUserByFilter(bsonKey string, bsonValue string) (u *User, err error) {
 		return &User{}, err
 	}
 
+	span.SetAttributes(attribute.Key("user.id").String(user.ID.String()))
+	span.SetAttributes(attribute.Key("user.login").String(user.Login))
 	defer cancel()
 	return &user, nil
 }
