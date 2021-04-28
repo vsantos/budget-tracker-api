@@ -11,7 +11,7 @@
 // there are no TOS at this moment, use at your own risk we take no responsibility
 //
 //     Schemes: http, https
-//     Host: budget-tracker:8080
+//     Host: budget-tracker:5000
 //     BasePath:
 //     Version: 0.0.2
 //     License: MIT http://opensource.org/licenses/MIT
@@ -27,16 +27,18 @@
 package main
 
 import (
-	"budget-tracker/observability"
-	"budget-tracker/routes"
+	"budget-tracker-api/observability"
+	"budget-tracker-api/routes"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 )
 
 const (
-	port = ":8080"
+	port    = ":5000"
+	service = "budget-tracker-api"
 )
 
 func init() {
@@ -44,19 +46,28 @@ func init() {
 }
 
 func main() {
-	log.Infoln("Started Application at port", port)
-
-	p, err := observability.JaegerTracerProvider("budget-tracker-api", "http://jaeger:14268/api/traces")
-	if err != nil {
-		log.Fatal(err)
+	c := observability.ProvidersConfig{
+		ServiceName: "budget-tracker-api",
+		JaegerURL:   "http://jaeger:14268/api/traces",
+		ZipkinURL:   "http://jaeger:9411/api/v2/spans",
 	}
-	observability.InitTrace(p)
+
+	p, err := c.InitTracerProviders()
+	if err != nil {
+		log.Errorln(err)
+	}
+
+	// Change provider exporter if needed. Ex: `p.Stdout`
+	observability.InitGlobalTrace(p.Jaeger)
 
 	router := mux.NewRouter()
+	router.Use(otelmux.Middleware(service))
 	routes.InitRoutes(router)
 
 	err = http.ListenAndServe(port, router)
 	if err != nil {
-		log.Errorln(err)
+		log.Fatalln(err)
 	}
+
+	log.Infoln("Started Application at port", port)
 }

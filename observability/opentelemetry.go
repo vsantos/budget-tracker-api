@@ -2,12 +2,13 @@ package observability
 
 import (
 	"context"
-	"log"
-	"time"
+	"fmt"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -15,41 +16,28 @@ const (
 	id          = 1
 )
 
-// InitTrace will initiate a global tracer based on provider
-func InitTrace(tracerProvider *tracesdk.TracerProvider) {
+// InitGlobalTrace will initiate a global tracer based on provider
+func InitGlobalTrace(tracerProvider *tracesdk.TracerProvider) {
 	tp := tracerProvider
 
 	// Register our TracerProvider as the global so any imported
 	// instrumentation in the future will default to using it.
 	otel.SetTracerProvider(tp)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// Cleanly shutdown and flush telemetry when the application exits.
-	defer func(ctx context.Context) {
-		// Do not make the application hang when it is shutdown.
-		ctx, cancel = context.WithTimeout(ctx, time.Second*5)
-		defer cancel()
-		if err := tp.Shutdown(ctx); err != nil {
-			log.Fatal(err)
-		}
-	}(ctx)
-
-	tr := tp.Tracer("component-parent")
-
-	ctx, span := tr.Start(ctx, "parent-span")
-	defer span.End()
-
-	bar(ctx)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 }
 
-func bar(ctx context.Context) {
+// Span will test a child span
+func Span(ctx context.Context, component string, name string, spanTags []attribute.KeyValue) (childCtx context.Context, span trace.Span) {
 	// Use the global TracerProvider.
-	tr := otel.Tracer("component-child")
-	_, span := tr.Start(ctx, "child-span")
-	span.SetAttributes(attribute.Key("testset").String("value"))
-	defer span.End()
+	tr := otel.Tracer(component)
 
-	// Do bar...
+	childCtx, span = tr.Start(ctx, name)
+	if len(spanTags) > 0 {
+		for _, kvTag := range spanTags {
+			fmt.Println(kvTag)
+			span.SetAttributes(attribute.Key(kvTag.Key).String(kvTag.Value.AsString()))
+		}
+	}
+
+	return childCtx, span
 }

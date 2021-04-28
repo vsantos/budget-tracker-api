@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"budget-tracker/models"
+	"budget-tracker-api/models"
 	"encoding/json"
 	"strconv"
 

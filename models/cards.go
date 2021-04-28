@@ -1,7 +1,7 @@
 package models
 
 import (
-	"budget-tracker/services"
+	"budget-tracker-api/services"
 	"context"
 	"errors"
 	"time"
