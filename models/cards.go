@@ -1,6 +1,7 @@
 package models
 
 import (
+	"budget-tracker-api/observability"
 	"budget-tracker-api/services"
 	"context"
 	"errors"
@@ -12,20 +13,28 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 // CreateCard creates a card for a given owner_id
-func CreateCard(c CreditCard) (id string, err error) {
+func CreateCard(parentCtx context.Context, c CreditCard) (id string, err error) {
+	spanTags := []attribute.KeyValue{
+		attribute.Key("card.owner.id").String(c.OwnerID.String()),
+	}
+
+	ctx, span := observability.Span(parentCtx, "mongodb", "CreateCard", spanTags)
+	defer span.End()
+
 	dbClient, err := services.InitDatabase()
 	if err != nil {
 		return "", err
 	}
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbCardsCollection)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
 	_, err = col.Indexes().CreateOne(
-		context.Background(),
+		ctx,
 		mongo.IndexModel{
 			Keys:    bsonx.Doc{{Key: "owner_id", Value: bsonx.Int32(1)}, {Key: "last_digits", Value: bsonx.Int32(1)}},
 			Options: options.Index().SetUnique(true),
@@ -42,6 +51,7 @@ func CreateCard(c CreditCard) (id string, err error) {
 		return "", err
 	}
 
+	span.SetAttributes(attribute.Key("card.id").String(r.InsertedID.(primitive.ObjectID).Hex()))
 	defer cancel()
 
 	log.Infoln("created card", c.Alias)
@@ -49,14 +59,17 @@ func CreateCard(c CreditCard) (id string, err error) {
 }
 
 // GetAllCards will return a list of all cards from the database
-func GetAllCards() (cards []CreditCard, err error) {
+func GetAllCards(parentCtx context.Context) (cards []CreditCard, err error) {
+	ctx, span := observability.Span(parentCtx, "mongodb", "GetAllCards", []attribute.KeyValue{})
+	defer span.End()
+
 	dbClient, err := services.InitDatabase()
 	if err != nil {
 		return []CreditCard{}, err
 	}
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbCardsCollection)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	cursor, err := col.Find(ctx, bson.M{})
 	if err != nil {
 		cancel()
@@ -82,7 +95,14 @@ func GetAllCards() (cards []CreditCard, err error) {
 }
 
 // GetCards will return a list of cards from a owner_id
-func GetCards(ownerID string) (cards []CreditCard, err error) {
+func GetCards(parentCtx context.Context, ownerID string) (cards []CreditCard, err error) {
+	spanTags := []attribute.KeyValue{
+		attribute.Key("card.owner.id").String(ownerID),
+	}
+
+	ctx, span := observability.Span(parentCtx, "mongodb", "GetUserCards", spanTags)
+	defer span.End()
+
 	dbClient, err := services.InitDatabase()
 	if err != nil {
 		return []CreditCard{}, err
@@ -94,7 +114,7 @@ func GetCards(ownerID string) (cards []CreditCard, err error) {
 	}
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbCardsCollection)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	cursor, err := col.Find(ctx, bson.M{"owner_id": pid})
 	if err != nil {
 		cancel()
@@ -120,7 +140,14 @@ func GetCards(ownerID string) (cards []CreditCard, err error) {
 }
 
 // DeleteCard creates an user based on request body payload
-func DeleteCard(id string) (err error) {
+func DeleteCard(parentCtx context.Context, id string) (err error) {
+	spanTags := []attribute.KeyValue{
+		attribute.Key("card.id").String(id),
+	}
+
+	ctx, span := observability.Span(parentCtx, "mongodb", "DeleteUserCard", spanTags)
+	defer span.End()
+
 	pid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
@@ -132,7 +159,7 @@ func DeleteCard(id string) (err error) {
 	}
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbCardsCollection)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
 	log.Infoln("deleting card", id)
 	result, err := col.DeleteOne(ctx, bson.M{"_id": pid})

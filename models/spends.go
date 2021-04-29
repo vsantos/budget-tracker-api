@@ -1,6 +1,7 @@
 package models
 
 import (
+	"budget-tracker-api/observability"
 	"budget-tracker-api/services"
 	"context"
 	"time"
@@ -8,17 +9,25 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 // CreateSpend creates a card for a given owner_id
-func CreateSpend(s Spend) (id string, err error) {
+func CreateSpend(parentCtx context.Context, s Spend) (id string, err error) {
+	spanTags := []attribute.KeyValue{
+		attribute.Key("spend.owner.id").String(s.OwnerID.String()),
+	}
+
+	ctx, span := observability.Span(parentCtx, "mongodb", "CreateSpend", spanTags)
+	defer span.End()
+
 	dbClient, err := services.InitDatabase()
 	if err != nil {
 		return "", err
 	}
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbSpendsCollection)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
 	// adding timestamp to creationDate
 	t := time.Now()
@@ -30,6 +39,7 @@ func CreateSpend(s Spend) (id string, err error) {
 		return "", err
 	}
 
+	span.SetAttributes(attribute.Key("spend.id").String(r.InsertedID.(primitive.ObjectID).Hex()))
 	defer cancel()
 
 	log.Infoln("created spend", r.InsertedID.(primitive.ObjectID).Hex())
@@ -37,7 +47,14 @@ func CreateSpend(s Spend) (id string, err error) {
 }
 
 // GetSpends will return all spends from a specific owner_id
-func GetSpends(ownerID string) (spends []Spend, err error) {
+func GetSpends(parentCtx context.Context, ownerID string) (spends []Spend, err error) {
+	spanTags := []attribute.KeyValue{
+		attribute.Key("spend.owner.id").String(ownerID),
+	}
+
+	ctx, span := observability.Span(parentCtx, "mongodb", "GetSpends", spanTags)
+	defer span.End()
+
 	dbClient, err := services.InitDatabase()
 	if err != nil {
 		return []Spend{}, err
@@ -49,7 +66,7 @@ func GetSpends(ownerID string) (spends []Spend, err error) {
 	}
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbSpendsCollection)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	cursor, err := col.Find(ctx, bson.M{"owner_id": pid})
 	if err != nil {
 		cancel()

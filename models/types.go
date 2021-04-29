@@ -138,4 +138,5 @@ type Balance struct {
 	Month           int64              `json:"month" bson:"month"`
 	Year            int64              `json:"year" bson:"year"`
 	CreatedAt       primitive.DateTime `json:"created_at" bson:"created_at"`
+	UpdatedAt       primitive.DateTime `json:"updated_at" bson:"updated_at"`
 }
