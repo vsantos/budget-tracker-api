@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"budget-tracker/models"
+	"budget-tracker-api/models"
 	"encoding/json"
 	"net/http"
 
@@ -35,7 +35,7 @@ func CreateCardEndpoint(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	result, err := models.CreateCard(card)
+	result, err := models.CreateCard(request.Context(), card)
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "could not create card", "details": "` + err.Error() + `"}`))
@@ -51,7 +51,7 @@ func GetAllCardsEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
 	response.Header().Set("Access-Control-Allow-Origin", "*")
 
-	cards, err := models.GetAllCards()
+	cards, err := models.GetAllCards(request.Context())
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "` + err.Error() + `"}`))
@@ -73,7 +73,7 @@ func GetCardsEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	params := mux.Vars(request)
 
-	cards, err := models.GetCards(params["owner_id"])
+	cards, err := models.GetCards(request.Context(), params["owner_id"])
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "` + err.Error() + `"}`))
@@ -95,7 +95,7 @@ func DeleteCardEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	params := mux.Vars(request)
 
-	err := models.DeleteCard(params["id"])
+	err := models.DeleteCard(request.Context(), params["id"])
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "could not delete card", "details": "` + err.Error() + `"}`))

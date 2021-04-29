@@ -1,13 +1,15 @@
 package models
 
 import (
-	"budget-tracker/crypt"
-	"budget-tracker/services"
+	"budget-tracker-api/crypt"
+	"budget-tracker-api/observability"
+	"budget-tracker-api/services"
 	"context"
 	"errors"
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/attribute"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -17,14 +19,17 @@ import (
 )
 
 // GetUsers will return all users from database
-func GetUsers() (users []SanitizedUser, err error) {
+func GetUsers(parentCtx context.Context) (users []SanitizedUser, err error) {
+	ctx, span := observability.Span(parentCtx, "mongodb", "getUsers", []attribute.KeyValue{})
+	defer span.End()
+
 	dbClient, err := services.InitDatabase()
 	if err != nil {
 		return []SanitizedUser{}, err
 	}
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbUserCollection)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	cursor, err := col.Find(ctx, bson.M{})
 	if err != nil {
 		cancel()
@@ -50,7 +55,13 @@ func GetUsers() (users []SanitizedUser, err error) {
 }
 
 // GetUser will return a user from database based on ID
-func GetUser(id string) (u *User, err error) {
+func GetUser(parentCtx context.Context, id string) (u *User, err error) {
+	spanTags := []attribute.KeyValue{
+		attribute.Key("user.id").String(id),
+	}
+	ctx, span := observability.Span(parentCtx, "mongodb", "getUser", spanTags)
+	defer span.End()
+
 	pid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return &User{}, err
@@ -64,7 +75,7 @@ func GetUser(id string) (u *User, err error) {
 	var user User
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbUserCollection)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
 	err = col.FindOne(ctx, bson.M{"_id": pid}).Decode(&user)
 	if err != nil {
@@ -72,12 +83,16 @@ func GetUser(id string) (u *User, err error) {
 		return &User{}, err
 	}
 
+	span.SetAttributes(attribute.Key("user.login").String(user.Login))
 	defer cancel()
 	return &user, nil
 }
 
 // GetUserByFilter will return a user from database based on key,pair BSON
-func GetUserByFilter(bsonKey string, bsonValue string) (u *User, err error) {
+func GetUserByFilter(parentCtx context.Context, bsonKey string, bsonValue string) (u *User, err error) {
+	ctx, span := observability.Span(parentCtx, "mongodb", "getUser", []attribute.KeyValue{})
+	defer span.End()
+
 	dbClient, err := services.InitDatabase()
 	if err != nil {
 		return &User{}, err
@@ -86,7 +101,7 @@ func GetUserByFilter(bsonKey string, bsonValue string) (u *User, err error) {
 	var user User
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbUserCollection)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(parentCtx, 5*time.Second)
 
 	err = col.FindOne(ctx, bson.M{bsonKey: bsonValue}).Decode(&user)
 	if err != nil {
@@ -94,19 +109,29 @@ func GetUserByFilter(bsonKey string, bsonValue string) (u *User, err error) {
 		return &User{}, err
 	}
 
+	span.SetAttributes(attribute.Key("user.id").String(user.ID.String()))
+	span.SetAttributes(attribute.Key("user.login").String(user.Login))
 	defer cancel()
 	return &user, nil
 }
 
 // CreateUser creates an user based on request body payload
-func CreateUser(u User) (id string, err error) {
+func CreateUser(parentCtx context.Context, u User) (id string, err error) {
+	spanTags := []attribute.KeyValue{
+		attribute.Key("user.id").String(u.ID.String()),
+		attribute.Key("user.login").String(u.Login),
+	}
+
+	ctx, span := observability.Span(parentCtx, "mongodb", "CreateUser", spanTags)
+	defer span.End()
+
 	dbClient, err := services.InitDatabase()
 	if err != nil {
 		return "", err
 	}
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbUserCollection)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
 	_, err = col.Indexes().CreateOne(
 		context.Background(),
@@ -145,7 +170,14 @@ func CreateUser(u User) (id string, err error) {
 }
 
 // DeleteUser creates an user based on request body payload
-func DeleteUser(id string) (err error) {
+func DeleteUser(parentCtx context.Context, id string) (err error) {
+	spanTags := []attribute.KeyValue{
+		attribute.Key("user.id").String(id),
+	}
+
+	ctx, span := observability.Span(parentCtx, "mongodb", "DeleteUser", spanTags)
+	defer span.End()
+
 	pid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
@@ -157,7 +189,7 @@ func DeleteUser(id string) (err error) {
 	}
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbUserCollection)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
 	log.Infoln("deleting user", id)
 	result, err := col.DeleteOne(ctx, bson.M{"_id": pid})

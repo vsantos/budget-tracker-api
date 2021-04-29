@@ -115,6 +115,8 @@ type Spend struct {
 	Type string `json:"type" bson:"type"`
 	// example: guitar lessons
 	Description string `json:"description" bson:"description"`
+	// example: 12.90
+	Cost float64 `json:"cost" bson:"cost"`
 	// example: debit: true
 	PaymentMethod PaymentMethod `json:"payment_method,omitempty" bson:"payment_method,omitempty"`
 	// example: "categories": ["personal development"]
@@ -136,4 +138,5 @@ type Balance struct {
 	Month           int64              `json:"month" bson:"month"`
 	Year            int64              `json:"year" bson:"year"`
 	CreatedAt       primitive.DateTime `json:"created_at" bson:"created_at"`
+	UpdatedAt       primitive.DateTime `json:"updated_at" bson:"updated_at"`
 }

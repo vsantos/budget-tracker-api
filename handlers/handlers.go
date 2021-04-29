@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"budget-tracker/controllers"
+	"budget-tracker-api/controllers"
 	"net/http"
 )
 

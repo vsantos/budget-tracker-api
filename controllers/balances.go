@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"budget-tracker/models"
+	"budget-tracker-api/models"
 	"encoding/json"
 	"strconv"
 
@@ -24,7 +24,7 @@ func CreateBalanceEndpoint(response http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	result, err := models.CreateBalance(balance)
+	result, err := models.CreateBalance(request.Context(), balance)
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "could not create balance", "details": "` + err.Error() + `"}`))
@@ -47,7 +47,7 @@ func GetBalanceEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	// in case of a non-existent URL parameters
 	if month == "" || year == "" {
-		balances, err := models.GetAllBalances(params["owner_id"])
+		balances, err := models.GetAllBalances(request.Context(), params["owner_id"])
 		if err != nil {
 			response.WriteHeader(http.StatusInternalServerError)
 			response.Write([]byte(`{"message": "` + err.Error() + `"}`))
@@ -68,7 +68,7 @@ func GetBalanceEndpoint(response http.ResponseWriter, request *http.Request) {
 		imonth, _ := strconv.ParseInt(month, 10, 64)
 		iyear, _ := strconv.ParseInt(year, 10, 64)
 
-		balance, err := models.GetBalance(params["owner_id"], imonth, iyear)
+		balance, err := models.GetBalance(request.Context(), params["owner_id"], imonth, iyear)
 		if err != nil {
 			response.WriteHeader(http.StatusInternalServerError)
 			response.Write([]byte(`{"message": "` + err.Error() + `"}`))

@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"budget-tracker/handlers"
+	"budget-tracker-api/handlers"
 
 	"github.com/gorilla/mux"
 )

@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"budget-tracker/crypt"
-	"budget-tracker/models"
+	"budget-tracker-api/crypt"
+	"budget-tracker-api/models"
 	"encoding/json"
 	"net/http"
 
@@ -62,7 +62,7 @@ func CreateJWTTokenEndpoint(response http.ResponseWriter, request *http.Request)
 		return
 	}
 
-	dbUser, err := models.GetUserByFilter("login", jwtUser.Login)
+	dbUser, err := models.GetUserByFilter(request.Context(), "login", jwtUser.Login)
 	if err != nil {
 		response.WriteHeader(http.StatusUnauthorized)
 		response.Write([]byte(`{"message": "invalid credentials for user '` + jwtUser.Login + `'"}`))

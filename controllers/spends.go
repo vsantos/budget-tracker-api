@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"budget-tracker/models"
+	"budget-tracker-api/models"
 	"encoding/json"
 	"net/http"
 
@@ -23,7 +23,7 @@ func CreateSpendEndpoint(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	result, err := models.CreateSpend(spend)
+	result, err := models.CreateSpend(request.Context(), spend)
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "could not create spend", "details": "` + err.Error() + `"}`))
@@ -43,7 +43,7 @@ func GetSpendsEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	params := mux.Vars(request)
 
-	spends, err := models.GetSpends(params["owner_id"])
+	spends, err := models.GetSpends(request.Context(), params["owner_id"])
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "` + err.Error() + `"}`))
