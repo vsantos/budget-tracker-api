@@ -115,6 +115,8 @@ type Spend struct {
 	Type string `json:"type" bson:"type"`
 	// example: guitar lessons
 	Description string `json:"description" bson:"description"`
+	// example: 12.90
+	Cost float64 `json:"cost" bson:"cost"`
 	// example: debit: true
 	PaymentMethod PaymentMethod `json:"payment_method,omitempty" bson:"payment_method,omitempty"`
 	// example: "categories": ["personal development"]

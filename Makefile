@@ -3,4 +3,4 @@ swagger-spec:
 run:
 	docker-compose up -d
 rebuild:
-        docker-compose up --force-recreate --build budget-tracker
+	docker-compose up -d --force-recreate --build budget-tracker
