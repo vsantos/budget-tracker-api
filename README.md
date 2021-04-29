@@ -30,4 +30,4 @@ Download `./docs/insomnia.json` file and upload it to your insomnia application 
 
 ## Opentelemetry
 
-This application supports opentelemetry and currently is using `jaeger` exporter
+This application supports opentelemetry and currently is using `jaeger` exporter, `stdout` and `zipkin` exporters are supported as well.
