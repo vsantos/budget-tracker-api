@@ -229,7 +229,7 @@ info:
     url: http://opensource.org/licenses/MIT
   termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
   title: Budget-tracker API.
-  version: 0.0.2
+  version: 0.0.4
 paths:
   /api/v1/balance:
     post:
@@ -712,7 +712,7 @@ paths:
         "200":
           description: prometheus' metrics
       tags:
-      - Prometheus
+      - Utils
 produces:
 - application/json
 schemes:

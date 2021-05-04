@@ -13,7 +13,7 @@
 //     Schemes: http, https
 //     Host: budget-tracker:5000
 //     BasePath:
-//     Version: 0.0.2
+//     Version: 0.0.4
 //     License: MIT http://opensource.org/licenses/MIT
 //     Contact: Victor Santos<vsantos.py@gmail.com> https://github.com/vsantos
 //

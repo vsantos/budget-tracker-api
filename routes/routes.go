@@ -34,7 +34,7 @@ func InitRoutes(service string, router *mux.Router) {
 	//     type: json
 	router.Handle("/health", h.HealthCheckHandler).Methods("GET")
 
-	// swagger:operation GET /metrics Prometheus get
+	// swagger:operation GET /metrics Utils get
 	//
 	// Returns prometheus' metrics to be scraped
 	// ---
