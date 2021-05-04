@@ -31,3 +31,7 @@ Download `./docs/insomnia.json` file and upload it to your insomnia application 
 ## Opentelemetry
 
 This application supports opentelemetry and currently is using `jaeger` exporter, `stdout` and `zipkin` exporters are supported as well.
+
+## Metrics
+
+We are supporting prometheus' `/metrics` endpoint in order to be posterior scraped by a third-party application. It contains business metrics and additional automatic HTTP ones, the `Go Collector` metrics are currently disabled.
