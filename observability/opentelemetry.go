@@ -2,7 +2,6 @@ package observability
 
 import (
 	"context"
-	"fmt"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -34,7 +33,6 @@ func Span(ctx context.Context, component string, name string, spanTags []attribu
 	childCtx, span = tr.Start(ctx, name)
 	if len(spanTags) > 0 {
 		for _, kvTag := range spanTags {
-			fmt.Println(kvTag)
 			span.SetAttributes(attribute.Key(kvTag.Key).String(kvTag.Value.AsString()))
 		}
 	}

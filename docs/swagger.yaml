@@ -29,6 +29,8 @@ definitions:
         format: double
         type: number
         x-go-name: SpendableAmount
+      updated_at:
+        $ref: '#/definitions/DateTime'
       year:
         format: int64
         type: integer
@@ -702,6 +704,15 @@ paths:
               database: unhealthy
       tags:
       - Utils
+  /metrics:
+    get:
+      description: Returns prometheus' metrics to be scraped
+      operationId: get
+      responses:
+        "200":
+          description: prometheus' metrics
+      tags:
+      - Prometheus
 produces:
 - application/json
 schemes:

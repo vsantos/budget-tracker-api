@@ -42,6 +42,7 @@ func CreateSpend(parentCtx context.Context, s Spend) (id string, err error) {
 	span.SetAttributes(attribute.Key("spend.id").String(r.InsertedID.(primitive.ObjectID).Hex()))
 	defer cancel()
 
+	observability.Metrics.Spends.SpendsCreated.Inc()
 	log.Infoln("created spend", r.InsertedID.(primitive.ObjectID).Hex())
 	return r.InsertedID.(primitive.ObjectID).Hex(), nil
 }

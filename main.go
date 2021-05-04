@@ -33,7 +33,6 @@ import (
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 )
 
 const (
@@ -59,10 +58,10 @@ func main() {
 
 	// Change provider exporter if needed. Ex: `p.Stdout`
 	observability.InitGlobalTrace(p.Jaeger)
+	observability.InitMetrics()
 
 	router := mux.NewRouter()
-	router.Use(otelmux.Middleware(service))
-	routes.InitRoutes(router)
+	routes.InitRoutes(service, router)
 
 	err = http.ListenAndServe(port, router)
 	if err != nil {

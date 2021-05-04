@@ -54,6 +54,7 @@ func CreateCard(parentCtx context.Context, c CreditCard) (id string, err error) 
 	span.SetAttributes(attribute.Key("card.id").String(r.InsertedID.(primitive.ObjectID).Hex()))
 	defer cancel()
 
+	observability.Metrics.Cards.CardsCreated.Inc()
 	log.Infoln("created card", c.Alias)
 	return r.InsertedID.(primitive.ObjectID).Hex(), nil
 }

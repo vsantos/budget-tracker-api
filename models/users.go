@@ -165,6 +165,7 @@ func CreateUser(parentCtx context.Context, u User) (id string, err error) {
 
 	defer cancel()
 
+	observability.Metrics.Users.UsersCreated.Inc()
 	log.Infoln("created user", u.Login)
 	return r.InsertedID.(primitive.ObjectID).Hex(), nil
 }
