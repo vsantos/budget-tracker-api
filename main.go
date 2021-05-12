@@ -29,14 +29,15 @@ package main
 import (
 	"budget-tracker-api/observability"
 	"budget-tracker-api/routes"
-	"net/http"
+	"budget-tracker-api/server"
+	"crypto/tls"
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
 
 const (
-	port    = ":5000"
+	port    = ":5001"
 	service = "budget-tracker-api"
 )
 
@@ -63,10 +64,16 @@ func main() {
 	router := mux.NewRouter()
 	routes.InitRoutes(service, router)
 
-	err = http.ListenAndServe(port, router)
+	hc := server.HTTPConfig{
+		Port:      port,
+		Router:    router,
+		TLSConfig: &tls.Config{},
+		CertFile:  "config/tls/server.crt",
+		KeyFile:   "config/tls/server.key",
+	}
+
+	err = hc.InitHTTPServer(false)
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	log.Infoln("Started Application at port", port)
 }
