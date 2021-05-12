@@ -1,0 +1,7 @@
+# A list of scrape configurations.
+scrape_configs:
+  - job_name: budget-tracker
+    scrape_interval: 5s
+    scheme: http
+    static_configs:
+      - targets: ['budget-tracker:5000']
