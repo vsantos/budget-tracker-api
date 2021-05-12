@@ -30,16 +30,19 @@ func (c HTTPConfig) InitHTTPServer(serveTLS bool) (err error) {
 	}
 
 	if serveTLS {
+		log.Infoln(fmt.Sprintf("Started %s Application at port %s with TLS enabled", srv.TLSConfig.NextProtos[0], c.Port))
 		err = srv.ListenAndServeTLS(c.CertFile, c.KeyFile)
 		if err != nil {
 			return err
 		}
 	}
 
-	log.Infoln(fmt.Sprintf("Started %s Application at port %s", c.TLSConfig.NextProtos[0], c.Port))
-	err = srv.ListenAndServe()
-	if err != nil {
-		return err
+	if !serveTLS {
+		log.Infoln(fmt.Sprintf("Started %s Application at port %s", c.TLSConfig.NextProtos[0], c.Port))
+		err = srv.ListenAndServe()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
