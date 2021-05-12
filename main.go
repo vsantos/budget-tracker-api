@@ -13,7 +13,7 @@
 //     Schemes: http, https
 //     Host: budget-tracker:5000
 //     BasePath:
-//     Version: 0.0.2
+//     Version: 0.0.4
 //     License: MIT http://opensource.org/licenses/MIT
 //     Contact: Victor Santos<vsantos.py@gmail.com> https://github.com/vsantos
 //
@@ -34,7 +34,6 @@ import (
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 )
 
 const (
@@ -60,10 +59,10 @@ func main() {
 
 	// Change provider exporter if needed. Ex: `p.Stdout`
 	observability.InitGlobalTrace(p.Jaeger)
+	observability.InitMetrics()
 
 	router := mux.NewRouter()
-	router.Use(otelmux.Middleware(service))
-	routes.InitRoutes(router)
+	routes.InitRoutes(service, router)
 
 	hc := server.HTTPConfig{
 		Port:      port,

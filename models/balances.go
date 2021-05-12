@@ -60,6 +60,7 @@ func CreateBalance(parentCtx context.Context, b Balance) (id string, err error) 
 	span.SetAttributes(attribute.Key("balance.id").String(r.InsertedID.(primitive.ObjectID).Hex()))
 	defer cancel()
 
+	observability.Metrics.Balances.BalancesCreated.Inc()
 	log.Infoln("created balance", r.InsertedID.(primitive.ObjectID).Hex())
 	return r.InsertedID.(primitive.ObjectID).Hex(), nil
 }

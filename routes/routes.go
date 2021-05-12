@@ -4,10 +4,14 @@ import (
 	"budget-tracker-api/handlers"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 )
 
 // InitRoutes will initiate all routes
-func InitRoutes(router *mux.Router) {
+func InitRoutes(service string, router *mux.Router) {
+	router.Use(otelmux.Middleware(service))
+
 	m := handlers.GetMiddlewares()
 	h := handlers.GetHandlers()
 
@@ -29,6 +33,15 @@ func InitRoutes(router *mux.Router) {
 	//       application/json: { "database": "unhealthy" }
 	//     type: json
 	router.Handle("/health", h.HealthCheckHandler).Methods("GET")
+
+	// swagger:operation GET /metrics Utils get
+	//
+	// Returns prometheus' metrics to be scraped
+	// ---
+	// responses:
+	//   '200':
+	//     description: prometheus' metrics
+	router.Path("/metrics").Handler(promhttp.Handler())
 
 	// swagger:operation GET /api/v1/swagger.yaml Utils get
 	//

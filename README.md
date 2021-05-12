@@ -20,6 +20,8 @@ You can use `docker-compose` to run the entire backend stack locally: `budget-tr
 
 The mongodb served by `docker-compose` has no credentials so it's recommended only for development purposes.
 
+The "observability" stack containing: `jaeger` and `prometheus` is optional but recommended for testing purposes. You can either disable them by commenting on the services at `docker-compose.yml` or simply specifying which service you are going to need: `docker-compose up -d budget-tracker`.
+
 ## Swagger API support
 
 This application uses go-swagger to generate swagger specs directly from the code, to run it just:
@@ -37,3 +39,7 @@ Download `./docs/insomnia.json` file and upload it to your insomnia application 
 ## Opentelemetry
 
 This application supports opentelemetry and currently uses `jaeger` exporter, `stdout`, and `zipkin` exporters are supported as well.
+
+## Metrics
+
+We are supporting prometheus' `/metrics` endpoint in order to be posterior scraped by a third-party application. It contains business metrics and additional automatic HTTP ones, the `Go Collector` metrics are currently disabled.
