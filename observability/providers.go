@@ -1,7 +1,6 @@
 package observability
 
 import (
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/stdout"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
 	zipkinExporter "go.opentelemetry.io/otel/exporters/trace/zipkin"
@@ -26,17 +25,21 @@ type Providers struct {
 
 // InitTracerProviders will return a struct with both providers: jaeger and stdout
 func (c ProvidersConfig) InitTracerProviders() (p Providers, err error) {
-	zp, err := ZipkinTracerProvider(c.ServiceName, c.ZipkinURL)
+	resourceAttributes := resource.NewWithAttributes(
+		semconv.ServiceNameKey.String(c.ServiceName),
+	)
+
+	zp, err := ZipkinTracerProvider(resourceAttributes, c.ZipkinURL)
 	if err != nil {
 		return p, err
 	}
 
-	jp, err := JaegerTracerProvider(c.ServiceName, c.JaegerURL)
+	jp, err := JaegerTracerProvider(resourceAttributes, c.JaegerURL)
 	if err != nil {
 		return p, err
 	}
 
-	sp, err := StdoutTracerProvider(c.ServiceName)
+	sp, err := StdoutTracerProvider(resourceAttributes)
 	if err != nil {
 		return p, err
 	}
@@ -54,7 +57,7 @@ func (c ProvidersConfig) InitTracerProviders() (p Providers, err error) {
 // the Jaeger exporter that will send spans to the provided url. The returned
 // TracerProvider will also use a Resource configured with all the information
 // about the application.
-func JaegerTracerProvider(service string, url string) (*tracesdk.TracerProvider, error) {
+func JaegerTracerProvider(resourceAttributes *resource.Resource, url string) (*tracesdk.TracerProvider, error) {
 	// Create the Jaeger exporter
 
 	exp, err := jaeger.NewRawExporter(
@@ -62,44 +65,38 @@ func JaegerTracerProvider(service string, url string) (*tracesdk.TracerProvider,
 			jaeger.WithEndpoint(url),
 		),
 	)
-
-	tp := tracesdk.NewTracerProvider(
-		tracesdk.WithBatcher(exp),
-		tracesdk.WithResource(resource.NewWithAttributes(
-			semconv.ServiceNameKey.String(service),
-			attribute.String("environment", environment),
-		)),
-	)
-
 	if err != nil {
 		return nil, err
 	}
+
+	tp := tracesdk.NewTracerProvider(
+		tracesdk.WithBatcher(exp),
+		tracesdk.WithResource(resourceAttributes),
+	)
+
 	return tp, nil
 }
 
 // ZipkinTracerProvider returns an OpenTelemetry TracerProvider configured to use
 // the Zipkin exporter
-func ZipkinTracerProvider(service string, url string) (*tracesdk.TracerProvider, error) {
+func ZipkinTracerProvider(resourceAttributes *resource.Resource, url string) (*tracesdk.TracerProvider, error) {
 	// Create the Jaeger exporter
 	exp, err := zipkinExporter.NewRawExporter(url)
-
-	tp := tracesdk.NewTracerProvider(
-		tracesdk.WithBatcher(exp),
-		tracesdk.WithResource(resource.NewWithAttributes(
-			semconv.ServiceNameKey.String(service),
-			attribute.String("environment", environment),
-		)),
-	)
-
 	if err != nil {
 		return nil, err
 	}
+
+	tp := tracesdk.NewTracerProvider(
+		tracesdk.WithBatcher(exp),
+		tracesdk.WithResource(resourceAttributes),
+	)
+
 	return tp, nil
 }
 
 // StdoutTracerProvider returns an OpenTelemetry TracerProvider configured to use
 // the stdout exporter
-func StdoutTracerProvider(service string) (*tracesdk.TracerProvider, error) {
+func StdoutTracerProvider(resourceAttributes *resource.Resource) (*tracesdk.TracerProvider, error) {
 	exporter, err := stdout.NewExporter(stdout.WithPrettyPrint())
 	if err != nil {
 		return nil, err
@@ -108,10 +105,7 @@ func StdoutTracerProvider(service string) (*tracesdk.TracerProvider, error) {
 	tp := tracesdk.NewTracerProvider(
 		tracesdk.WithSampler(tracesdk.AlwaysSample()),
 		tracesdk.WithSyncer(exporter),
-		tracesdk.WithResource(resource.NewWithAttributes(
-			semconv.ServiceNameKey.String(service),
-			attribute.String("environment", environment),
-		)),
+		tracesdk.WithResource(resourceAttributes),
 	)
 
 	return tp, nil
