@@ -1,9 +1,14 @@
 package server
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -19,10 +24,24 @@ type HTTPConfig struct {
 	KeyFile   string
 }
 
+// WaitGracefulShutdown is blocking code to wait a SIGNAL to graceful shutdown the server
+func WaitGracefulShutdown(srv *http.Server, timeoutSeconds time.Duration) (err error) {
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	<-quit
+
+	log.Infoln("Waiting server to shutdown...")
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutSeconds*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // InitHTTPServer will init a HTTP/1 (h2) server with optional TLS enforcement
 func (c HTTPConfig) InitHTTPServer(serveTLS bool) (err error) {
-	c.TLSConfig.NextProtos = []string{"http/1.1"}
-
 	srv := &http.Server{
 		Addr:      c.Port,
 		Handler:   c.Router,
@@ -31,38 +50,26 @@ func (c HTTPConfig) InitHTTPServer(serveTLS bool) (err error) {
 
 	if serveTLS {
 		log.Infoln(fmt.Sprintf("Started %s Application at port %s with TLS enabled", srv.TLSConfig.NextProtos[0], c.Port))
-		err = srv.ListenAndServeTLS(c.CertFile, c.KeyFile)
-		if err != nil {
-			return err
-		}
+		go func() {
+			if err := srv.ListenAndServeTLS(c.CertFile, c.KeyFile); err != nil && err != http.ErrServerClosed {
+				log.Panicln("Server error: ", err)
+			}
+		}()
 	}
 
 	if !serveTLS {
-		log.Infoln(fmt.Sprintf("Started %s Application at port %s", c.TLSConfig.NextProtos[0], c.Port))
-		err = srv.ListenAndServe()
-		if err != nil {
-			return err
-		}
+		log.Infoln(fmt.Sprintf("Started %s Application at port %s with TLS disabled", srv.TLSConfig.NextProtos[0], c.Port))
+		go func() {
+			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				log.Panicln("Server error: ", err)
+			}
+		}()
 	}
 
-	return nil
-}
-
-// InitHTTP2Server will init a HTTP/2 (h2) server with TLS enforcement
-func (c HTTPConfig) InitHTTP2Server() (err error) {
-	c.TLSConfig.NextProtos = []string{"h2"}
-
-	srv := &http.Server{
-		Addr:      c.Port,
-		Handler:   c.Router,
-		TLSConfig: c.TLSConfig,
-	}
-
-	log.Infoln(fmt.Sprintf("Started %s Application at port %s", c.TLSConfig.NextProtos[0], c.Port))
-	err = srv.ListenAndServeTLS(c.CertFile, c.KeyFile)
-	if err != nil {
+	if err := WaitGracefulShutdown(srv, 15); err != nil {
 		return err
 	}
 
+	log.Infoln("Server finished")
 	return nil
 }

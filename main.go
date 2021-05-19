@@ -65,13 +65,17 @@ func main() {
 	routes.InitRoutes(service, router)
 
 	hc := server.HTTPConfig{
-		Port:      port,
-		Router:    router,
-		TLSConfig: &tls.Config{},
-		CertFile:  "config/tls/server.crt",
-		KeyFile:   "config/tls/server.key",
+		Port:   port,
+		Router: router,
+		TLSConfig: &tls.Config{
+			// In the absence of `NextProtos`, HTTP/1.1 protocol will be enabled
+			NextProtos: []string{"h2"},
+		},
+		CertFile: "config/tls/server.crt",
+		KeyFile:  "config/tls/server.key",
 	}
 
+	// In case of 'h2' (HTTP/2) the serverTLS must be set as `true`
 	err = hc.InitHTTPServer(false)
 	if err != nil {
 		log.Fatalln(err)
