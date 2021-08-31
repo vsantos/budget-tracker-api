@@ -111,6 +111,7 @@ func GetUserByFilter(parentCtx context.Context, bsonKey string, bsonValue string
 
 	span.SetAttributes(attribute.Key("user.id").String(user.ID.String()))
 	span.SetAttributes(attribute.Key("user.login").String(user.Login))
+	span.SetAttributes(attribute.Key("user.email").String(user.Email))
 	defer cancel()
 	return &user, nil
 }
@@ -120,6 +121,7 @@ func CreateUser(parentCtx context.Context, u User) (id string, err error) {
 	spanTags := []attribute.KeyValue{
 		attribute.Key("user.id").String(u.ID.String()),
 		attribute.Key("user.login").String(u.Login),
+		attribute.Key("user.email").String(u.Email),
 	}
 
 	ctx, span := observability.Span(parentCtx, "mongodb", "CreateUser", spanTags)
@@ -133,13 +135,24 @@ func CreateUser(parentCtx context.Context, u User) (id string, err error) {
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbUserCollection)
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
-	_, err = col.Indexes().CreateOne(
+	_, err = col.Indexes().CreateMany(
 		context.Background(),
-		mongo.IndexModel{
-			Keys:    bsonx.Doc{{Key: "login", Value: bsonx.Int32(1)}},
-			Options: options.Index().SetUnique(true),
+		[]mongo.IndexModel{
+			{
+				Keys:    bsonx.Doc{{Key: "login", Value: bsonx.Int32(1)}},
+				Options: options.Index().SetUnique(true),
+			},
+			{
+				Keys:    bson.D{{Key: "email", Value: bsonx.Int32(1)}},
+				Options: options.Index().SetUnique(true),
+			},
 		},
 	)
+
+	if err != nil {
+		defer cancel()
+		return "", err
+	}
 
 	// adding timestamp to creationDate
 	t := time.Now()

@@ -10,6 +10,10 @@ type Handlers struct {
 	HealthCheckHandler http.Handler
 	SwaggerHandler     http.Handler
 
+	OptionsOauthJWTTokenHandler http.Handler
+	CreateOauthJWTTokenHandler  http.Handler
+	GoogleCallbackHandler       http.Handler
+
 	OptionsJWTTokenHandler http.Handler
 	CreateJWTTokenHandler  http.Handler
 	RefreshJWTTokenHandler http.Handler
@@ -37,6 +41,9 @@ func GetHandlers() (h Handlers) {
 	h.HealthCheckHandler = http.HandlerFunc(controllers.HealthCheck)
 	h.SwaggerHandler = http.HandlerFunc(controllers.Swagger)
 
+	h.OptionsOauthJWTTokenHandler = http.HandlerFunc(controllers.Oauth2TokenOptionsEndpoint)
+	h.CreateOauthJWTTokenHandler = http.HandlerFunc(controllers.CreateOauthTokenEndpoint)
+	h.GoogleCallbackHandler = http.HandlerFunc(controllers.GoogleCallbackEndpoint)
 	h.OptionsJWTTokenHandler = http.HandlerFunc(controllers.JWTTokenOptionsEndpoint)
 	h.CreateJWTTokenHandler = http.HandlerFunc(controllers.CreateJWTTokenEndpoint)
 	h.RefreshJWTTokenHandler = http.HandlerFunc(controllers.CreateJWTTokenEndpoint)

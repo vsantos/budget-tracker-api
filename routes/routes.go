@@ -57,6 +57,45 @@ func InitRoutes(service string, router *mux.Router) {
 	//     type: json
 	router.Handle("/api/v1/swagger.yaml", h.SwaggerHandler).Methods("GET")
 
+	// swagger:operation GET /api/v1/oauth/login Authentication oauth2
+	//
+	// Returns a JWT signed token based on oauth2 to be used for the next 5 minutes
+	// ---
+	// consumes:
+	// - application/json
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: content-type
+	//   in: headers
+	//   description: application/json
+	//   required: true
+	// - name: body
+	//   in: body
+	//   description: credentials
+	//   required: true
+	//   schema:
+	//     "$ref": "#/definitions/JWTUser"
+	// responses:
+	//   '201':
+	//     description: returned JWT token
+	//     examples:
+	//       application/json: { "type": "bearer", "refresh": "<REFRESH_TOKEN>", "token": "<JWT_TOKEN>" }
+	//     type: json
+	//   '400':
+	//     description: bad request (missing one of params)
+	//     examples:
+	//       application/json: { "message": "empty required payload attributes" }
+	//     type: json
+	//   '401':
+	//     description: invalid credentials
+	//     examples:
+	//       application/json: { "message": "invalid credentials for user 'vsantos'" }
+	//     type: json
+	router.Handle("/api/v1/oauth/login", h.CreateOauthJWTTokenHandler).Methods("GET")
+
+	router.Handle("/api/v1/oauth/google/callback", h.GoogleCallbackHandler).Methods("GET")
+
 	// swagger:operation POST /api/v1/jwt/issue Authentication issue
 	//
 	// Returns a JWT signed token to be used for the next 5 minutes

@@ -37,6 +37,35 @@ type User struct {
 	CreatedAt primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
 }
 
+// Oauth2 defines which oauth2 provider should be used
+// swagger:model
+type Oauth2 struct {
+	Provider string `json:"provider,omitempty"`
+}
+
+// Oauth2GoogleResponse defines google's userinfo response
+// swagger:model
+type Oauth2GoogleResponse struct {
+	// example: 108004079729530006866
+	ID string `json:"id,omitempty" bson:"_id,omitempty"`
+	// example: example@domain.com
+	Email string `json:"email,omitempty" bson:"email,omitempty"`
+	// example: true
+	VerifiedEmail bool `json:"email_verified,omitempty" bson:"email_verified,omitempty"`
+	// example: John Doe
+	Name string `json:"name,omitempty" bson:"name,omitempty"`
+	// example: John
+	GivenName string `json:"given_name,omitempty" bson:"given_name,omitempty"`
+	// example: Doe
+	FamilyName string `json:"family_name,omitempty" bson:"family_name,omitempty"`
+	// example: https://lh3.googleusercontent.com/foo/bar
+	Picture string `json:"picture,omitempty" bson:"picture,omitempty"`
+	// example: en
+	Locale string `json:"locale,omitempty" bson:"locale,omitempty"`
+	// example: company.com
+	HD string `json:"hd,omitempty" bson:"hd,omitempty"`
+}
+
 // JWTUser defines a user to generate JWT tokens
 // swagger:model
 type JWTUser struct {
@@ -97,16 +126,16 @@ type Outcome struct {
 	DynamicOutcome float64 `json:"dynamic" bson:"dynamic"`
 }
 
-// swagger:model
 // PaymentMethod defines which payment method was used for a certain spend
+// swagger:model
 type PaymentMethod struct {
 	Credit      CreditCard `json:"credit,omitempty" bson:"credit,omitempty"`
 	Debit       bool       `json:"debit,omitempty" bson:"debit,omitempty"`
 	PaymentSlip bool       `json:"payment_slip,omitempty" bson:"payment_slip,omitempty"`
 }
 
-// swagger:model
 // Spend defines a user spend to be added to Balance
+// swagger:model
 type Spend struct {
 	// swagger:ignore
 	ID      primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
@@ -125,8 +154,8 @@ type Spend struct {
 	CreatedAt primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
 }
 
-// swagger:model
 // Balance defines an user balance
+// swagger:model
 type Balance struct {
 	ID              primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	OwnerID         primitive.ObjectID `json:"owner_id,omitempty" bson:"owner_id,omitempty"`

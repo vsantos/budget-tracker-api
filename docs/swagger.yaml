@@ -2,6 +2,7 @@ consumes:
 - application/json
 definitions:
   Balance:
+    description: Balance defines an user balance
     properties:
       created_at:
         $ref: '#/definitions/DateTime'
@@ -109,6 +110,46 @@ definitions:
         x-go-name: Password
     type: object
     x-go-package: budget-tracker-api/models
+  Oauth2:
+    description: Oauth2 defines which oauth2 provider should be used
+    properties:
+      provider:
+        type: string
+        x-go-name: Provider
+    type: object
+    x-go-package: budget-tracker-api/models
+  Oauth2GoogleResponse:
+    description: Oauth2GoogleResponse defines google's userinfo response
+    properties:
+      Email:
+        example: example@domain.com
+        type: string
+      FamilyName:
+        example: Doe
+        type: string
+      GivenName:
+        example: John
+        type: string
+      HD:
+        example: company.com
+        type: string
+      ID:
+        example: "108004079729530006866"
+        type: string
+      Locale:
+        example: en
+        type: string
+      Name:
+        example: John Doe
+        type: string
+      Picture:
+        example: https://lh3.googleusercontent.com/foo/bar
+        type: string
+      VerifiedEmail:
+        example: true
+        type: boolean
+    type: object
+    x-go-package: budget-tracker-api/models
   ObjectID:
     items:
       format: uint8
@@ -130,6 +171,7 @@ definitions:
     type: object
     x-go-package: budget-tracker-api/models
   PaymentMethod:
+    description: PaymentMethod defines which payment method was used for a certain spend
     properties:
       credit:
         $ref: '#/definitions/CreditCard'
@@ -161,6 +203,7 @@ definitions:
     type: object
     x-go-package: budget-tracker-api/models
   Spend:
+    description: Spend defines a user spend to be added to Balance
     properties:
       category:
         example: '"categories": ["personal development"]'
@@ -452,6 +495,45 @@ paths:
       - application/json
       description: Returns a JWT signed token to be used for the next 5 minutes
       operationId: issue
+      parameters:
+      - description: application/json
+        in: headers
+        name: content-type
+        required: true
+      - description: credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/JWTUser'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: returned JWT token
+          examples:
+            application/json:
+              refresh: <REFRESH_TOKEN>
+              token: <JWT_TOKEN>
+              type: bearer
+        "400":
+          description: bad request (missing one of params)
+          examples:
+            application/json:
+              message: empty required payload attributes
+        "401":
+          description: invalid credentials
+          examples:
+            application/json:
+              message: invalid credentials for user 'vsantos'
+      tags:
+      - Authentication
+  /api/v1/oauth/login:
+    get:
+      consumes:
+      - application/json
+      description: Returns a JWT signed token based on oauth2 to be used for the next 5 minutes
+      operationId: oauth2
       parameters:
       - description: application/json
         in: headers
