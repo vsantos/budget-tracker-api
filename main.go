@@ -39,7 +39,6 @@ import (
 const (
 	port    = ":5000"
 	service = "budget-tracker-api"
-	// DatabaseURI will set where to store data
 )
 
 func init() {
