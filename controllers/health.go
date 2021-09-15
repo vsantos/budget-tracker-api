@@ -10,7 +10,11 @@ import (
 func HealthCheck(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
 
-	err := services.DatabaseHealth()
+	var d services.DataManager
+	d = services.MongoCfg{
+		URI: services.DatabaseURI,
+	}
+	err := d.Health()
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"database": "unhealthy", "details": "` + err.Error() + `"}`))

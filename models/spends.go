@@ -21,7 +21,7 @@ func CreateSpend(parentCtx context.Context, s Spend) (id string, err error) {
 	ctx, span := observability.Span(parentCtx, "mongodb", "CreateSpend", spanTags)
 	defer span.End()
 
-	dbClient, err := services.InitDatabase()
+	dbClient, err := services.InitDatabase("")
 	if err != nil {
 		return "", err
 	}
@@ -56,7 +56,7 @@ func GetSpends(parentCtx context.Context, ownerID string) (spends []Spend, err e
 	ctx, span := observability.Span(parentCtx, "mongodb", "GetSpends", spanTags)
 	defer span.End()
 
-	dbClient, err := services.InitDatabase()
+	dbClient, err := services.InitDatabase("")
 	if err != nil {
 		return []Spend{}, err
 	}

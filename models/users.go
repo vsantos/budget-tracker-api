@@ -23,7 +23,7 @@ func GetUsers(parentCtx context.Context) (users []SanitizedUser, err error) {
 	ctx, span := observability.Span(parentCtx, "mongodb", "getUsers", []attribute.KeyValue{})
 	defer span.End()
 
-	dbClient, err := services.InitDatabase()
+	dbClient, err := services.InitDatabase("")
 	if err != nil {
 		return []SanitizedUser{}, err
 	}
@@ -67,7 +67,7 @@ func GetUser(parentCtx context.Context, id string) (u *User, err error) {
 		return &User{}, err
 	}
 
-	dbClient, err := services.InitDatabase()
+	dbClient, err := services.InitDatabase("")
 	if err != nil {
 		return &User{}, err
 	}
@@ -93,7 +93,7 @@ func GetUserByFilter(parentCtx context.Context, bsonKey string, bsonValue string
 	ctx, span := observability.Span(parentCtx, "mongodb", "getUser", []attribute.KeyValue{})
 	defer span.End()
 
-	dbClient, err := services.InitDatabase()
+	dbClient, err := services.InitDatabase("")
 	if err != nil {
 		return &User{}, err
 	}
@@ -125,7 +125,7 @@ func CreateUser(parentCtx context.Context, u User) (id string, err error) {
 	ctx, span := observability.Span(parentCtx, "mongodb", "CreateUser", spanTags)
 	defer span.End()
 
-	dbClient, err := services.InitDatabase()
+	dbClient, err := services.InitDatabase("")
 	if err != nil {
 		return "", err
 	}
@@ -184,7 +184,7 @@ func DeleteUser(parentCtx context.Context, id string) (err error) {
 		return err
 	}
 
-	dbClient, err := services.InitDatabase()
+	dbClient, err := services.InitDatabase("")
 	if err != nil {
 		return err
 	}

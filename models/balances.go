@@ -24,7 +24,7 @@ func CreateBalance(parentCtx context.Context, b Balance) (id string, err error) 
 	ctx, span := observability.Span(parentCtx, "mongodb", "CreateBalance", spanTags)
 	defer span.End()
 
-	dbClient, err := services.InitDatabase()
+	dbClient, err := services.InitDatabase("")
 	if err != nil {
 		return "", err
 	}
@@ -79,7 +79,7 @@ func GetBalance(parentCtx context.Context, ownerID string, month int64, year int
 		return &Balance{}, err
 	}
 
-	dbClient, err := services.InitDatabase()
+	dbClient, err := services.InitDatabase("")
 	if err != nil {
 		return &Balance{}, err
 	}
@@ -110,7 +110,7 @@ func GetAllBalances(parentCtx context.Context, ownerID string) (balances []Balan
 	ctx, span := observability.Span(parentCtx, "mongodb", "GetAllBalances", spanTags)
 	defer span.End()
 
-	dbClient, err := services.InitDatabase()
+	dbClient, err := services.InitDatabase("")
 	if err != nil {
 		return []Balance{}, err
 	}
