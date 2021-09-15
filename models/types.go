@@ -5,14 +5,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const (
-	mongodbDatabase          = "budget-tracker"
-	mongodbUserCollection    = "users"
-	mongodbCardsCollection   = "cards"
-	mongodbBalanceCollection = "balance"
-	mongodbSpendsCollection  = "spends"
-)
-
 // Database creates a Database client
 type Database struct {
 	client *mongo.Client
@@ -97,16 +89,16 @@ type Outcome struct {
 	DynamicOutcome float64 `json:"dynamic" bson:"dynamic"`
 }
 
-// swagger:model
 // PaymentMethod defines which payment method was used for a certain spend
+// swagger:model
 type PaymentMethod struct {
 	Credit      CreditCard `json:"credit,omitempty" bson:"credit,omitempty"`
 	Debit       bool       `json:"debit,omitempty" bson:"debit,omitempty"`
 	PaymentSlip bool       `json:"payment_slip,omitempty" bson:"payment_slip,omitempty"`
 }
 
-// swagger:model
 // Spend defines a user spend to be added to Balance
+// swagger:model
 type Spend struct {
 	// swagger:ignore
 	ID      primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
@@ -125,8 +117,8 @@ type Spend struct {
 	CreatedAt primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
 }
 
-// swagger:model
 // Balance defines an user balance
+// swagger:model
 type Balance struct {
 	ID              primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	OwnerID         primitive.ObjectID `json:"owner_id,omitempty" bson:"owner_id,omitempty"`

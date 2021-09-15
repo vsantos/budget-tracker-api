@@ -10,7 +10,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
 	"go.opentelemetry.io/otel/attribute"
@@ -25,34 +24,35 @@ func CreateCard(parentCtx context.Context, c CreditCard) (id string, err error) 
 	ctx, span := observability.Span(parentCtx, "mongodb", "CreateCard", spanTags)
 	defer span.End()
 
-	dbClient, err := services.InitDatabase("")
+	var m services.Monger
+	m = services.MongoCfg{
+		URI:       services.DatabaseURI,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbCardsCollection,
+	}
+
+	_, err = m.SetIndex(
+		ctx,
+		bsonx.Doc{
+			{Key: "owner_id", Value: bsonx.Int32(1)},
+			{Key: "last_digits", Value: bsonx.Int32(1)},
+		},
+		options.Index().SetUnique(true),
+	)
 	if err != nil {
 		return "", err
 	}
-
-	col := dbClient.Database(mongodbDatabase).Collection(mongodbCardsCollection)
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-
-	_, err = col.Indexes().CreateOne(
-		ctx,
-		mongo.IndexModel{
-			Keys:    bsonx.Doc{{Key: "owner_id", Value: bsonx.Int32(1)}, {Key: "last_digits", Value: bsonx.Int32(1)}},
-			Options: options.Index().SetUnique(true),
-		},
-	)
 
 	// adding timestamp to creationDate
 	t := time.Now()
 	c.CreatedAt = primitive.NewDateTimeFromTime(t)
 
-	r, err := col.InsertOne(ctx, c)
+	r, err := m.Create(ctx, c)
 	if err != nil {
-		cancel()
 		return "", err
 	}
 
 	span.SetAttributes(attribute.Key("card.id").String(r.InsertedID.(primitive.ObjectID).Hex()))
-	defer cancel()
 
 	observability.Metrics.Cards.CardsCreated.Inc()
 	log.Infoln("created card", c.Alias)
@@ -64,31 +64,30 @@ func GetAllCards(parentCtx context.Context) (cards []CreditCard, err error) {
 	ctx, span := observability.Span(parentCtx, "mongodb", "GetAllCards", []attribute.KeyValue{})
 	defer span.End()
 
-	dbClient, err := services.InitDatabase("")
+	var m services.Monger
+	m = services.MongoCfg{
+		URI:       services.DatabaseURI,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbCardsCollection,
+	}
+
+	cursor, err := m.GetAll(ctx, bson.M{})
 	if err != nil {
 		return []CreditCard{}, err
 	}
-
-	col := dbClient.Database(mongodbDatabase).Collection(mongodbCardsCollection)
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	cursor, err := col.Find(ctx, bson.M{})
 	if err != nil {
-		cancel()
 		return []CreditCard{}, err
 	}
 
 	defer cursor.Close(ctx)
-	defer cancel()
 
 	for cursor.Next(ctx) {
 		var card CreditCard
 		cursor.Decode(&card)
 		cards = append(cards, card)
-		defer cancel()
 	}
 
 	if err := cursor.Err(); err != nil {
-		cancel()
 		return []CreditCard{}, err
 	}
 
@@ -104,36 +103,32 @@ func GetCards(parentCtx context.Context, ownerID string) (cards []CreditCard, er
 	ctx, span := observability.Span(parentCtx, "mongodb", "GetUserCards", spanTags)
 	defer span.End()
 
-	dbClient, err := services.InitDatabase("")
-	if err != nil {
-		return []CreditCard{}, err
-	}
-
 	pid, err := primitive.ObjectIDFromHex(ownerID)
 	if err != nil {
 		return []CreditCard{}, err
 	}
 
-	col := dbClient.Database(mongodbDatabase).Collection(mongodbCardsCollection)
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	cursor, err := col.Find(ctx, bson.M{"owner_id": pid})
+	var m services.Monger
+	m = services.MongoCfg{
+		URI:       services.DatabaseURI,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbCardsCollection,
+	}
+
+	cursor, err := m.GetAll(ctx, bson.M{"owner_id": pid})
 	if err != nil {
-		cancel()
 		return []CreditCard{}, err
 	}
 
 	defer cursor.Close(ctx)
-	defer cancel()
 
 	for cursor.Next(ctx) {
 		var card CreditCard
 		cursor.Decode(&card)
 		cards = append(cards, card)
-		defer cancel()
 	}
 
 	if err := cursor.Err(); err != nil {
-		cancel()
 		return []CreditCard{}, err
 	}
 
@@ -154,29 +149,23 @@ func DeleteCard(parentCtx context.Context, id string) (err error) {
 		return err
 	}
 
-	dbClient, err := services.InitDatabase("")
-	if err != nil {
-		return err
-	}
-
-	col := dbClient.Database(mongodbDatabase).Collection(mongodbCardsCollection)
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-
 	log.Infoln("deleting card", id)
-	result, err := col.DeleteOne(ctx, bson.M{"_id": pid})
+	var m services.Monger
+	m = services.MongoCfg{
+		URI:       services.DatabaseURI,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbCardsCollection,
+	}
+
+	r, err := m.Delete(ctx, bson.M{"_id": pid})
 	if err != nil {
-		cancel()
 		return err
 	}
 
-	log.Infoln("number of cards deleted:", result.DeletedCount)
-
-	if result.DeletedCount == 0 {
-		cancel()
+	log.Infoln("number of cards deleted:", r.DeletedCount)
+	if r.DeletedCount == 0 {
 		return errors.New("non existent card")
 	}
-
-	defer cancel()
 
 	log.Infoln("deleted card", id)
 	return nil

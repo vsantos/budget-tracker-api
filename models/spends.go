@@ -26,7 +26,7 @@ func CreateSpend(parentCtx context.Context, s Spend) (id string, err error) {
 		return "", err
 	}
 
-	col := dbClient.Database(mongodbDatabase).Collection(mongodbSpendsCollection)
+	col := dbClient.Database(services.MongodbDatabase).Collection(services.MongodbSpendsCollection)
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
 	// adding timestamp to creationDate
@@ -66,7 +66,7 @@ func GetSpends(parentCtx context.Context, ownerID string) (spends []Spend, err e
 		return []Spend{}, err
 	}
 
-	col := dbClient.Database(mongodbDatabase).Collection(mongodbSpendsCollection)
+	col := dbClient.Database(services.MongodbDatabase).Collection(services.MongodbSpendsCollection)
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	cursor, err := col.Find(ctx, bson.M{"owner_id": pid})
 	if err != nil {

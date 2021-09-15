@@ -4,7 +4,6 @@ import (
 	"budget-tracker-api/crypt"
 	"budget-tracker-api/models"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
@@ -65,7 +64,7 @@ func CreateJWTTokenEndpoint(response http.ResponseWriter, request *http.Request)
 
 	dbUser, err := models.GetUserByFilter(request.Context(), "login", jwtUser.Login)
 	if err != nil {
-		fmt.Println(err)
+		log.Error(err)
 		response.WriteHeader(http.StatusUnauthorized)
 		response.Write([]byte(`{"message": "invalid credentials for user '` + jwtUser.Login + `'"}`))
 		return

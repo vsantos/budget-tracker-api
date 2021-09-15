@@ -13,6 +13,8 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
 // GetUsers will return all users from database
@@ -23,8 +25,8 @@ func GetUsers(parentCtx context.Context) (users []SanitizedUser, err error) {
 	var m services.Monger
 	m = services.MongoCfg{
 		URI:       services.DatabaseURI,
-		Database:  mongodbDatabase,
-		Colletion: mongodbUserCollection,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbUserCollection,
 	}
 
 	cursor, err := m.GetAll(ctx, bson.M{})
@@ -67,8 +69,8 @@ func GetUser(parentCtx context.Context, id string) (u *User, err error) {
 	var m services.Monger
 	m = services.MongoCfg{
 		URI:       services.DatabaseURI,
-		Database:  mongodbDatabase,
-		Colletion: mongodbUserCollection,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbUserCollection,
 	}
 
 	d, err := m.Get(ctx, bson.M{"_id": pid})
@@ -94,8 +96,8 @@ func GetUserByFilter(parentCtx context.Context, bsonKey string, bsonValue string
 	var m services.Monger
 	m = services.MongoCfg{
 		URI:       services.DatabaseURI,
-		Database:  mongodbDatabase,
-		Colletion: mongodbUserCollection,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbUserCollection,
 	}
 
 	d, err := m.Get(ctx, bson.M{bsonKey: bsonValue})
@@ -140,8 +142,17 @@ func CreateUser(parentCtx context.Context, u User) (id string, err error) {
 	var m services.Monger
 	m = services.MongoCfg{
 		URI:       services.DatabaseURI,
-		Database:  mongodbDatabase,
-		Colletion: mongodbUserCollection,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbUserCollection,
+	}
+
+	_, err = m.SetIndex(
+		ctx,
+		bsonx.Doc{{Key: "login", Value: bsonx.Int32(1)}},
+		options.Index().SetUnique(true),
+	)
+	if err != nil {
+		return "", err
 	}
 
 	r, err := m.Create(ctx, u)
@@ -172,8 +183,8 @@ func DeleteUser(parentCtx context.Context, id string) (err error) {
 	var m services.Monger
 	m = services.MongoCfg{
 		URI:       services.DatabaseURI,
-		Database:  mongodbDatabase,
-		Colletion: mongodbUserCollection,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbUserCollection,
 	}
 
 	r, err := m.Delete(ctx, bson.M{"_id": pid})

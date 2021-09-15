@@ -29,7 +29,7 @@ func CreateBalance(parentCtx context.Context, b Balance) (id string, err error) 
 		return "", err
 	}
 
-	col := dbClient.Database(mongodbDatabase).Collection(mongodbBalanceCollection)
+	col := dbClient.Database(services.MongodbDatabase).Collection(services.MongodbBalanceCollection)
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
 	_, err = col.Indexes().CreateOne(
@@ -84,7 +84,7 @@ func GetBalance(parentCtx context.Context, ownerID string, month int64, year int
 		return &Balance{}, err
 	}
 
-	col := dbClient.Database(mongodbDatabase).Collection(mongodbBalanceCollection)
+	col := dbClient.Database(services.MongodbDatabase).Collection(services.MongodbBalanceCollection)
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
 	err = col.FindOne(ctx, bson.M{
@@ -120,7 +120,7 @@ func GetAllBalances(parentCtx context.Context, ownerID string) (balances []Balan
 		return []Balance{}, err
 	}
 
-	col := dbClient.Database(mongodbDatabase).Collection(mongodbBalanceCollection)
+	col := dbClient.Database(services.MongodbDatabase).Collection(services.MongodbBalanceCollection)
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	cursor, err := col.Find(ctx, bson.M{"owner_id": oid})
 	if err != nil {

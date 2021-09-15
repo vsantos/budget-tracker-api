@@ -10,12 +10,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
 const (
 	// DatabaseURI will set where to store data
 	DatabaseURI = "mongodb://localhost:27017/"
+	// MongodbDatabase will define a default mongo database
+	MongodbDatabase = "budget-tracker"
+	// MongodbUserCollection will define a default users collection
+	MongodbUserCollection = "users"
+	// MongodbCardsCollection will define a default cards collection
+	MongodbCardsCollection = "cards"
+	// MongodbBalanceCollection will define a default balance collection
+	MongodbBalanceCollection = "balance"
+	// MongodbSpendsCollection will define a default spends collection
+	MongodbSpendsCollection = "spends"
 )
 
 // MongoCfg satisfies DataManager and Monger Interfaces
@@ -30,6 +39,7 @@ type MongoCfg struct {
 
 // Monger will
 type Monger interface {
+	SetIndex(ctx context.Context, keys interface{}, opts *options.IndexOptions) (index string, err error)
 	Get(ctx context.Context, document primitive.M) (s *mongo.SingleResult, err error)
 	GetAll(ctx context.Context, document primitive.M) (s *mongo.Cursor, err error)
 	Create(ctx context.Context, document interface{}) (r *mongo.InsertOneResult, err error)
@@ -73,6 +83,29 @@ func (m MongoCfg) Health() (err error) {
 
 	defer cancel()
 	return nil
+}
+
+// SetIndex will performance a single Indexes().CreateOne operation based on a index name
+func (m MongoCfg) SetIndex(ctx context.Context, keys interface{}, opts *options.IndexOptions) (index string, err error) {
+	dbClient, err := InitDatabase(m.URI)
+	if err != nil {
+		return "", err
+	}
+
+	col := dbClient.Database(m.Database).Collection(m.Colletion)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+
+	i, err := col.Indexes().CreateOne(
+		context.Background(),
+		mongo.IndexModel{
+			Keys:    keys,
+			Options: opts,
+		},
+	)
+
+	defer cancel()
+
+	return i, nil
 }
 
 // Get will perform a mongoDB FindOne operation
@@ -121,14 +154,6 @@ func (m MongoCfg) Create(ctx context.Context, document interface{}) (r *mongo.In
 
 	col := dbClient.Database(m.Database).Collection(m.Colletion)
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-
-	_, err = col.Indexes().CreateOne(
-		context.Background(),
-		mongo.IndexModel{
-			Keys:    bsonx.Doc{{Key: "login", Value: bsonx.Int32(1)}},
-			Options: options.Index().SetUnique(true),
-		},
-	)
 
 	r, err = col.InsertOne(ctx, document)
 	if err != nil {
