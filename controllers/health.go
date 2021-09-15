@@ -10,7 +10,7 @@ import (
 func HealthCheck(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
 
-	var d services.DataManager
+	var d services.DatabaseManager
 	d = services.MongoCfg{
 		URI: services.DatabaseURI,
 	}
