@@ -9,6 +9,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/x/bsonx"
 	"go.opentelemetry.io/otel/attribute"
 )
 
@@ -21,26 +23,34 @@ func CreateSpend(parentCtx context.Context, s Spend) (id string, err error) {
 	ctx, span := observability.Span(parentCtx, "mongodb", "CreateSpend", spanTags)
 	defer span.End()
 
-	dbClient, err := services.InitDatabase("")
-	if err != nil {
-		return "", err
-	}
-
-	col := dbClient.Database(services.MongodbDatabase).Collection(services.MongodbSpendsCollection)
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-
 	// adding timestamp to creationDate
 	t := time.Now()
 	s.CreatedAt = primitive.NewDateTimeFromTime(t)
 
-	r, err := col.InsertOne(ctx, s)
+	var m services.Monger
+	m = services.MongoCfg{
+		URI:       services.DatabaseURI,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbSpendsCollection,
+	}
+
+	_, err = m.SetIndex(
+		ctx,
+		bsonx.Doc{
+			{Key: "owner_id", Value: bsonx.Int32(1)},
+		},
+		options.Index().SetUnique(true),
+	)
 	if err != nil {
-		cancel()
+		return "", err
+	}
+
+	r, err := m.Create(ctx, s)
+	if err != nil {
 		return "", err
 	}
 
 	span.SetAttributes(attribute.Key("spend.id").String(r.InsertedID.(primitive.ObjectID).Hex()))
-	defer cancel()
 
 	observability.Metrics.Spends.SpendsCreated.Inc()
 	log.Infoln("created spend", r.InsertedID.(primitive.ObjectID).Hex())
@@ -56,36 +66,32 @@ func GetSpends(parentCtx context.Context, ownerID string) (spends []Spend, err e
 	ctx, span := observability.Span(parentCtx, "mongodb", "GetSpends", spanTags)
 	defer span.End()
 
-	dbClient, err := services.InitDatabase("")
-	if err != nil {
-		return []Spend{}, err
-	}
-
 	pid, err := primitive.ObjectIDFromHex(ownerID)
 	if err != nil {
 		return []Spend{}, err
 	}
 
-	col := dbClient.Database(services.MongodbDatabase).Collection(services.MongodbSpendsCollection)
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	cursor, err := col.Find(ctx, bson.M{"owner_id": pid})
+	var m services.Monger
+	m = services.MongoCfg{
+		URI:       services.DatabaseURI,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbSpendsCollection,
+	}
+
+	cursor, err := m.GetAll(ctx, bson.M{"owner_id": pid})
 	if err != nil {
-		cancel()
 		return []Spend{}, err
 	}
 
 	defer cursor.Close(ctx)
-	defer cancel()
 
 	for cursor.Next(ctx) {
 		var spend Spend
 		cursor.Decode(&spend)
 		spends = append(spends, spend)
-		defer cancel()
 	}
 
 	if err := cursor.Err(); err != nil {
-		cancel()
 		return []Spend{}, err
 	}
 

@@ -9,7 +9,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
 	"go.opentelemetry.io/otel/attribute"
@@ -24,25 +23,25 @@ func CreateBalance(parentCtx context.Context, b Balance) (id string, err error) 
 	ctx, span := observability.Span(parentCtx, "mongodb", "CreateBalance", spanTags)
 	defer span.End()
 
-	dbClient, err := services.InitDatabase("")
+	var m services.Monger
+	m = services.MongoCfg{
+		URI:       services.DatabaseURI,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbBalanceCollection,
+	}
+
+	_, err = m.SetIndex(
+		ctx,
+		bsonx.Doc{
+			{Key: "owner_id", Value: bsonx.Int32(1)},
+			{Key: "month", Value: bsonx.Int32(1)},
+			{Key: "year", Value: bsonx.Int32(1)},
+		},
+		options.Index().SetUnique(true),
+	)
 	if err != nil {
 		return "", err
 	}
-
-	col := dbClient.Database(services.MongodbDatabase).Collection(services.MongodbBalanceCollection)
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-
-	_, err = col.Indexes().CreateOne(
-		ctx,
-		mongo.IndexModel{
-			Keys: bsonx.Doc{
-				{Key: "owner_id", Value: bsonx.Int32(1)},
-				{Key: "month", Value: bsonx.Int32(1)},
-				{Key: "year", Value: bsonx.Int32(1)},
-			},
-			Options: options.Index().SetUnique(true),
-		},
-	)
 
 	// adding timestamp to creationDate
 	t := time.Now()
@@ -51,14 +50,12 @@ func CreateBalance(parentCtx context.Context, b Balance) (id string, err error) 
 	b.SpendableAmount = b.Income.NetIncome
 	b.Historic = []Spend{}
 
-	r, err := col.InsertOne(ctx, b)
+	r, err := m.Create(ctx, b)
 	if err != nil {
-		cancel()
 		return "", err
 	}
 
 	span.SetAttributes(attribute.Key("balance.id").String(r.InsertedID.(primitive.ObjectID).Hex()))
-	defer cancel()
 
 	observability.Metrics.Balances.BalancesCreated.Inc()
 	log.Infoln("created balance", r.InsertedID.(primitive.ObjectID).Hex())
@@ -66,7 +63,7 @@ func CreateBalance(parentCtx context.Context, b Balance) (id string, err error) 
 }
 
 // GetBalance will return a balance from an owner_id based on month and year
-func GetBalance(parentCtx context.Context, ownerID string, month int64, year int64) (balance *Balance, err error) {
+func GetBalance(parentCtx context.Context, ownerID string, month int64, year int64) (b *Balance, err error) {
 	spanTags := []attribute.KeyValue{
 		attribute.Key("balance.owner.id").String(ownerID),
 	}
@@ -79,26 +76,30 @@ func GetBalance(parentCtx context.Context, ownerID string, month int64, year int
 		return &Balance{}, err
 	}
 
-	dbClient, err := services.InitDatabase("")
-	if err != nil {
-		return &Balance{}, err
+	var balance Balance
+	var m services.Monger
+	m = services.MongoCfg{
+		URI:       services.DatabaseURI,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbBalanceCollection,
 	}
 
-	col := dbClient.Database(services.MongodbDatabase).Collection(services.MongodbBalanceCollection)
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-
-	err = col.FindOne(ctx, bson.M{
+	d, err := m.Get(ctx, bson.M{
 		"owner_id": oid,
 		"month":    month,
 		"year":     year,
-	}).Decode(&balance)
+	})
 	if err != nil {
-		cancel()
 		return &Balance{}, err
 	}
 
-	defer cancel()
-	return balance, nil
+	err = d.Decode(&balance)
+	if err != nil {
+		return &Balance{}, err
+	}
+
+	span.SetAttributes(attribute.Key("balance.id").String(balance.ID.String()))
+	return &balance, nil
 }
 
 // GetAllBalances will return all balances from an owner_id
@@ -110,36 +111,32 @@ func GetAllBalances(parentCtx context.Context, ownerID string) (balances []Balan
 	ctx, span := observability.Span(parentCtx, "mongodb", "GetAllBalances", spanTags)
 	defer span.End()
 
-	dbClient, err := services.InitDatabase("")
-	if err != nil {
-		return []Balance{}, err
-	}
-
 	oid, err := primitive.ObjectIDFromHex(ownerID)
 	if err != nil {
 		return []Balance{}, err
 	}
 
-	col := dbClient.Database(services.MongodbDatabase).Collection(services.MongodbBalanceCollection)
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	cursor, err := col.Find(ctx, bson.M{"owner_id": oid})
+	var m services.Monger
+	m = services.MongoCfg{
+		URI:       services.DatabaseURI,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbBalanceCollection,
+	}
+
+	cursor, err := m.GetAll(ctx, bson.M{"owner_id": oid})
 	if err != nil {
-		cancel()
 		return []Balance{}, err
 	}
 
 	defer cursor.Close(ctx)
-	defer cancel()
 
 	for cursor.Next(ctx) {
 		var balance Balance
 		cursor.Decode(&balance)
 		balances = append(balances, balance)
-		defer cancel()
 	}
 
 	if err := cursor.Err(); err != nil {
-		cancel()
 		return []Balance{}, err
 	}
 
