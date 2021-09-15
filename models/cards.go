@@ -15,6 +15,27 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
+func init() {
+	var m services.Monger
+	m = services.MongoCfg{
+		URI:       services.DatabaseURI,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbCardsCollection,
+	}
+
+	_, err := m.SetIndex(
+		context.Background(),
+		bsonx.Doc{
+			{Key: "owner_id", Value: bsonx.Int32(1)},
+			{Key: "last_digits", Value: bsonx.Int32(1)},
+		},
+		options.Index().SetUnique(true),
+	)
+	if err != nil {
+		log.Error(err)
+	}
+}
+
 // CreateCard creates a card for a given owner_id
 func CreateCard(parentCtx context.Context, c CreditCard) (id string, err error) {
 	spanTags := []attribute.KeyValue{
@@ -29,18 +50,6 @@ func CreateCard(parentCtx context.Context, c CreditCard) (id string, err error) 
 		URI:       services.DatabaseURI,
 		Database:  services.MongodbDatabase,
 		Colletion: services.MongodbCardsCollection,
-	}
-
-	_, err = m.SetIndex(
-		ctx,
-		bsonx.Doc{
-			{Key: "owner_id", Value: bsonx.Int32(1)},
-			{Key: "last_digits", Value: bsonx.Int32(1)},
-		},
-		options.Index().SetUnique(true),
-	)
-	if err != nil {
-		return "", err
 	}
 
 	// adding timestamp to creationDate

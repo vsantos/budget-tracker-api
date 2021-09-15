@@ -14,6 +14,28 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
+func init() {
+	var m services.Monger
+	m = services.MongoCfg{
+		URI:       services.DatabaseURI,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbBalanceCollection,
+	}
+
+	_, err := m.SetIndex(
+		context.Background(),
+		bsonx.Doc{
+			{Key: "owner_id", Value: bsonx.Int32(1)},
+			{Key: "month", Value: bsonx.Int32(1)},
+			{Key: "year", Value: bsonx.Int32(1)},
+		},
+		options.Index().SetUnique(true),
+	)
+	if err != nil {
+		log.Error(err)
+	}
+}
+
 // CreateBalance creates a balance for a given owner_id
 func CreateBalance(parentCtx context.Context, b Balance) (id string, err error) {
 	spanTags := []attribute.KeyValue{
@@ -28,19 +50,6 @@ func CreateBalance(parentCtx context.Context, b Balance) (id string, err error) 
 		URI:       services.DatabaseURI,
 		Database:  services.MongodbDatabase,
 		Colletion: services.MongodbBalanceCollection,
-	}
-
-	_, err = m.SetIndex(
-		ctx,
-		bsonx.Doc{
-			{Key: "owner_id", Value: bsonx.Int32(1)},
-			{Key: "month", Value: bsonx.Int32(1)},
-			{Key: "year", Value: bsonx.Int32(1)},
-		},
-		options.Index().SetUnique(true),
-	)
-	if err != nil {
-		return "", err
 	}
 
 	// adding timestamp to creationDate

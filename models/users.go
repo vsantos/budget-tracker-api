@@ -17,6 +17,65 @@ import (
 	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
+func init() {
+	var m services.Monger
+	m = services.MongoCfg{
+		URI:       services.DatabaseURI,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbUserCollection,
+	}
+
+	_, err := m.SetIndex(
+		context.Background(),
+		bsonx.Doc{{Key: "login", Value: bsonx.Int32(1)}},
+		options.Index().SetUnique(true),
+	)
+	if err != nil {
+		log.Error(err)
+	}
+}
+
+// CreateUser creates an user based on request body payload
+func CreateUser(parentCtx context.Context, u User) (id string, err error) {
+	spanTags := []attribute.KeyValue{
+		attribute.Key("user.id").String(u.ID.String()),
+		attribute.Key("user.login").String(u.Login),
+	}
+
+	ctx, span := observability.Span(parentCtx, "mongodb", "CreateUser", spanTags)
+	defer span.End()
+
+	// adding timestamp to creationDate
+	t := time.Now()
+	u.CreatedAt = primitive.NewDateTimeFromTime(t)
+
+	// adding salted password for user
+	if u.SaltedPassword == "" {
+		return "", errors.New("empty password input")
+	}
+
+	u.SaltedPassword, err = crypt.GenerateSaltedPassword(u.SaltedPassword)
+	if err != nil {
+		return "", err
+	}
+
+	var m services.Monger
+	m = services.MongoCfg{
+		URI:       services.DatabaseURI,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbUserCollection,
+	}
+
+	r, err := m.Create(ctx, u)
+	if err != nil {
+		return "", err
+	}
+
+	observability.Metrics.Users.UsersCreated.Inc()
+	log.Infoln("created user", u.Login)
+	return r.InsertedID.(primitive.ObjectID).Hex(), nil
+}
+
 // GetUsers will return all users from database
 func GetUsers(parentCtx context.Context) (users []SanitizedUser, err error) {
 	ctx, span := observability.Span(parentCtx, "mongodb", "getUsers", []attribute.KeyValue{})
@@ -113,56 +172,6 @@ func GetUserByFilter(parentCtx context.Context, bsonKey string, bsonValue string
 	span.SetAttributes(attribute.Key("user.id").String(user.ID.String()))
 	span.SetAttributes(attribute.Key("user.login").String(user.Login))
 	return &user, nil
-}
-
-// CreateUser creates an user based on request body payload
-func CreateUser(parentCtx context.Context, u User) (id string, err error) {
-	spanTags := []attribute.KeyValue{
-		attribute.Key("user.id").String(u.ID.String()),
-		attribute.Key("user.login").String(u.Login),
-	}
-
-	ctx, span := observability.Span(parentCtx, "mongodb", "CreateUser", spanTags)
-	defer span.End()
-
-	// adding timestamp to creationDate
-	t := time.Now()
-	u.CreatedAt = primitive.NewDateTimeFromTime(t)
-
-	// adding salted password for user
-	if u.SaltedPassword == "" {
-		return "", errors.New("empty password input")
-	}
-
-	u.SaltedPassword, err = crypt.GenerateSaltedPassword(u.SaltedPassword)
-	if err != nil {
-		return "", err
-	}
-
-	var m services.Monger
-	m = services.MongoCfg{
-		URI:       services.DatabaseURI,
-		Database:  services.MongodbDatabase,
-		Colletion: services.MongodbUserCollection,
-	}
-
-	_, err = m.SetIndex(
-		ctx,
-		bsonx.Doc{{Key: "login", Value: bsonx.Int32(1)}},
-		options.Index().SetUnique(true),
-	)
-	if err != nil {
-		return "", err
-	}
-
-	r, err := m.Create(ctx, u)
-	if err != nil {
-		return "", err
-	}
-
-	observability.Metrics.Users.UsersCreated.Inc()
-	log.Infoln("created user", u.Login)
-	return r.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
 // DeleteUser creates an user based on request body payload

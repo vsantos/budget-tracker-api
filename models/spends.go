@@ -14,6 +14,26 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
+func init() {
+	var m services.Monger
+	m = services.MongoCfg{
+		URI:       services.DatabaseURI,
+		Database:  services.MongodbDatabase,
+		Colletion: services.MongodbSpendsCollection,
+	}
+
+	_, err := m.SetIndex(
+		context.Background(),
+		bsonx.Doc{
+			{Key: "owner_id", Value: bsonx.Int32(1)},
+		},
+		options.Index().SetUnique(true),
+	)
+	if err != nil {
+		log.Error(err)
+	}
+}
+
 // CreateSpend creates a card for a given owner_id
 func CreateSpend(parentCtx context.Context, s Spend) (id string, err error) {
 	spanTags := []attribute.KeyValue{
@@ -32,17 +52,6 @@ func CreateSpend(parentCtx context.Context, s Spend) (id string, err error) {
 		URI:       services.DatabaseURI,
 		Database:  services.MongodbDatabase,
 		Colletion: services.MongodbSpendsCollection,
-	}
-
-	_, err = m.SetIndex(
-		ctx,
-		bsonx.Doc{
-			{Key: "owner_id", Value: bsonx.Int32(1)},
-		},
-		options.Index().SetUnique(true),
-	)
-	if err != nil {
-		return "", err
 	}
 
 	r, err := m.Create(ctx, s)
