@@ -2,6 +2,7 @@ package models
 
 import (
 	"budget-tracker-api/observability"
+	"budget-tracker-api/repository"
 	"budget-tracker-api/services"
 	"context"
 	"time"
@@ -16,7 +17,7 @@ import (
 )
 
 // CreateBalance creates a balance for a given owner_id
-func CreateBalance(parentCtx context.Context, b Balance) (id string, err error) {
+func CreateBalance(parentCtx context.Context, b repository.Balance) (id string, err error) {
 	spanTags := []attribute.KeyValue{
 		attribute.Key("balance.owner.id").String(b.OwnerID.String()),
 	}
@@ -49,7 +50,7 @@ func CreateBalance(parentCtx context.Context, b Balance) (id string, err error) 
 	b.CreatedAt = primitive.NewDateTimeFromTime(t)
 	b.UpdatedAt = primitive.NewDateTimeFromTime(t)
 	b.SpendableAmount = b.Income.NetIncome
-	b.Historic = []Spend{}
+	b.Historic = []repository.Spend{}
 
 	r, err := col.InsertOne(ctx, b)
 	if err != nil {
@@ -66,7 +67,7 @@ func CreateBalance(parentCtx context.Context, b Balance) (id string, err error) 
 }
 
 // GetBalance will return a balance from an owner_id based on month and year
-func GetBalance(parentCtx context.Context, ownerID string, month int64, year int64) (balance *Balance, err error) {
+func GetBalance(parentCtx context.Context, ownerID string, month int64, year int64) (balance *repository.Balance, err error) {
 	spanTags := []attribute.KeyValue{
 		attribute.Key("balance.owner.id").String(ownerID),
 	}
@@ -76,12 +77,12 @@ func GetBalance(parentCtx context.Context, ownerID string, month int64, year int
 
 	oid, err := primitive.ObjectIDFromHex(ownerID)
 	if err != nil {
-		return &Balance{}, err
+		return &repository.Balance{}, err
 	}
 
 	dbClient, err := services.InitDatabase()
 	if err != nil {
-		return &Balance{}, err
+		return &repository.Balance{}, err
 	}
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbBalanceCollection)
@@ -94,7 +95,7 @@ func GetBalance(parentCtx context.Context, ownerID string, month int64, year int
 	}).Decode(&balance)
 	if err != nil {
 		cancel()
-		return &Balance{}, err
+		return &repository.Balance{}, err
 	}
 
 	defer cancel()
@@ -102,7 +103,7 @@ func GetBalance(parentCtx context.Context, ownerID string, month int64, year int
 }
 
 // GetAllBalances will return all balances from an owner_id
-func GetAllBalances(parentCtx context.Context, ownerID string) (balances []Balance, err error) {
+func GetAllBalances(parentCtx context.Context, ownerID string) (balances []repository.Balance, err error) {
 	spanTags := []attribute.KeyValue{
 		attribute.Key("balance.owner.id").String(ownerID),
 	}
@@ -112,12 +113,12 @@ func GetAllBalances(parentCtx context.Context, ownerID string) (balances []Balan
 
 	dbClient, err := services.InitDatabase()
 	if err != nil {
-		return []Balance{}, err
+		return []repository.Balance{}, err
 	}
 
 	oid, err := primitive.ObjectIDFromHex(ownerID)
 	if err != nil {
-		return []Balance{}, err
+		return []repository.Balance{}, err
 	}
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbBalanceCollection)
@@ -125,14 +126,14 @@ func GetAllBalances(parentCtx context.Context, ownerID string) (balances []Balan
 	cursor, err := col.Find(ctx, bson.M{"owner_id": oid})
 	if err != nil {
 		cancel()
-		return []Balance{}, err
+		return []repository.Balance{}, err
 	}
 
 	defer cursor.Close(ctx)
 	defer cancel()
 
 	for cursor.Next(ctx) {
-		var balance Balance
+		var balance repository.Balance
 		cursor.Decode(&balance)
 		balances = append(balances, balance)
 		defer cancel()
@@ -140,7 +141,7 @@ func GetAllBalances(parentCtx context.Context, ownerID string) (balances []Balan
 
 	if err := cursor.Err(); err != nil {
 		cancel()
-		return []Balance{}, err
+		return []repository.Balance{}, err
 	}
 
 	return balances, nil

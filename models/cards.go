@@ -2,6 +2,7 @@ package models
 
 import (
 	"budget-tracker-api/observability"
+	"budget-tracker-api/repository"
 	"budget-tracker-api/services"
 	"context"
 	"errors"
@@ -17,7 +18,7 @@ import (
 )
 
 // CreateCard creates a card for a given owner_id
-func CreateCard(parentCtx context.Context, c CreditCard) (id string, err error) {
+func CreateCard(parentCtx context.Context, c repository.CreditCard) (id string, err error) {
 	spanTags := []attribute.KeyValue{
 		attribute.Key("card.owner.id").String(c.OwnerID.String()),
 	}
@@ -60,13 +61,13 @@ func CreateCard(parentCtx context.Context, c CreditCard) (id string, err error) 
 }
 
 // GetAllCards will return a list of all cards from the database
-func GetAllCards(parentCtx context.Context) (cards []CreditCard, err error) {
+func GetAllCards(parentCtx context.Context) (cards []repository.CreditCard, err error) {
 	ctx, span := observability.Span(parentCtx, "mongodb", "GetAllCards", []attribute.KeyValue{})
 	defer span.End()
 
 	dbClient, err := services.InitDatabase()
 	if err != nil {
-		return []CreditCard{}, err
+		return []repository.CreditCard{}, err
 	}
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbCardsCollection)
@@ -74,14 +75,14 @@ func GetAllCards(parentCtx context.Context) (cards []CreditCard, err error) {
 	cursor, err := col.Find(ctx, bson.M{})
 	if err != nil {
 		cancel()
-		return []CreditCard{}, err
+		return []repository.CreditCard{}, err
 	}
 
 	defer cursor.Close(ctx)
 	defer cancel()
 
 	for cursor.Next(ctx) {
-		var card CreditCard
+		var card repository.CreditCard
 		cursor.Decode(&card)
 		cards = append(cards, card)
 		defer cancel()
@@ -89,14 +90,14 @@ func GetAllCards(parentCtx context.Context) (cards []CreditCard, err error) {
 
 	if err := cursor.Err(); err != nil {
 		cancel()
-		return []CreditCard{}, err
+		return []repository.CreditCard{}, err
 	}
 
 	return cards, nil
 }
 
 // GetCards will return a list of cards from a owner_id
-func GetCards(parentCtx context.Context, ownerID string) (cards []CreditCard, err error) {
+func GetCards(parentCtx context.Context, ownerID string) (cards []repository.CreditCard, err error) {
 	spanTags := []attribute.KeyValue{
 		attribute.Key("card.owner.id").String(ownerID),
 	}
@@ -106,12 +107,12 @@ func GetCards(parentCtx context.Context, ownerID string) (cards []CreditCard, er
 
 	dbClient, err := services.InitDatabase()
 	if err != nil {
-		return []CreditCard{}, err
+		return []repository.CreditCard{}, err
 	}
 
 	pid, err := primitive.ObjectIDFromHex(ownerID)
 	if err != nil {
-		return []CreditCard{}, err
+		return []repository.CreditCard{}, err
 	}
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbCardsCollection)
@@ -119,14 +120,14 @@ func GetCards(parentCtx context.Context, ownerID string) (cards []CreditCard, er
 	cursor, err := col.Find(ctx, bson.M{"owner_id": pid})
 	if err != nil {
 		cancel()
-		return []CreditCard{}, err
+		return []repository.CreditCard{}, err
 	}
 
 	defer cursor.Close(ctx)
 	defer cancel()
 
 	for cursor.Next(ctx) {
-		var card CreditCard
+		var card repository.CreditCard
 		cursor.Decode(&card)
 		cards = append(cards, card)
 		defer cancel()
@@ -134,7 +135,7 @@ func GetCards(parentCtx context.Context, ownerID string) (cards []CreditCard, er
 
 	if err := cursor.Err(); err != nil {
 		cancel()
-		return []CreditCard{}, err
+		return []repository.CreditCard{}, err
 	}
 
 	return cards, nil

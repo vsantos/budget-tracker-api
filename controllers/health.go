@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"budget-tracker-api/repository"
 	"budget-tracker-api/services"
 
 	"net/http"
@@ -10,7 +11,15 @@ import (
 func HealthCheck(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
 
-	err := services.DatabaseHealth()
+	repo := repository.NewDatabaseManagerRepository(&repository.DatabaseRepositoryMongoDB{
+		Client: services.MongoClient,
+		Config: services.MongoCfg{
+			URI:      services.MongodbURI,
+			Database: services.MongodbDatabase,
+		},
+	})
+
+	err := repo.Health()
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"database": "unhealthy", "details": "` + err.Error() + `"}`))

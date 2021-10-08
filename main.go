@@ -28,9 +28,13 @@ package main
 
 import (
 	"budget-tracker-api/observability"
+	"budget-tracker-api/repository"
 	"budget-tracker-api/routes"
 	"budget-tracker-api/server"
+	"budget-tracker-api/services"
+	"context"
 	"crypto/tls"
+	"fmt"
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
@@ -74,6 +78,23 @@ func main() {
 		CertFile: "config/tls/server.crt",
 		KeyFile:  "config/tls/server.key",
 	}
+
+	services.MongoClient, err = services.InitDatabaseWithURI("mongodb://localhost:27017/")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	repo := repository.NewUserRepository(&repository.UserRepositoryMongoDB{
+		Client: services.MongoClient,
+		Config: services.MongoCfg{
+			URI:       "mongodb://localhost:27017/",
+			Database:  "budget-tracker",
+			Colletion: "users",
+		},
+	})
+
+	r, _ := repo.GetAll(context.TODO())
+	fmt.Println(r)
 
 	// In case of 'h2' (HTTP/2) the serverTLS must be set as `true`
 	err = hc.InitHTTPServer(false)

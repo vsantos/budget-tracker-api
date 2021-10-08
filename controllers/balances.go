@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"budget-tracker-api/models"
+	"budget-tracker-api/repository"
 	"encoding/json"
 	"strconv"
 
@@ -14,7 +15,7 @@ import (
 func CreateBalanceEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
 
-	var balance models.Balance
+	var balance repository.Balance
 
 	_ = json.NewDecoder(request.Body).Decode(&balance)
 

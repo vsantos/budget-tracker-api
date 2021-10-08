@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"budget-tracker-api/models"
+	"budget-tracker-api/repository"
 	"encoding/json"
 	"net/http"
 
@@ -24,7 +25,7 @@ func CreateCardEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
 	response.Header().Set("Access-Control-Allow-Origin", "*")
 
-	var card models.CreditCard
+	var card repository.CreditCard
 
 	_ = json.NewDecoder(request.Body).Decode(&card)
 

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"budget-tracker-api/models"
+	"budget-tracker-api/repository"
 	"encoding/json"
 	"net/http"
 
@@ -13,7 +14,7 @@ func CreateSpendEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
 	response.Header().Add("backend", "budget-tracker")
 
-	var spend models.Spend
+	var spend repository.Spend
 
 	_ = json.NewDecoder(request.Body).Decode(&spend)
 

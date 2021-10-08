@@ -2,6 +2,7 @@ package models
 
 import (
 	"budget-tracker-api/observability"
+	"budget-tracker-api/repository"
 	"budget-tracker-api/services"
 	"context"
 	"time"
@@ -13,7 +14,7 @@ import (
 )
 
 // CreateSpend creates a card for a given owner_id
-func CreateSpend(parentCtx context.Context, s Spend) (id string, err error) {
+func CreateSpend(parentCtx context.Context, s repository.Spend) (id string, err error) {
 	spanTags := []attribute.KeyValue{
 		attribute.Key("spend.owner.id").String(s.OwnerID.String()),
 	}
@@ -48,7 +49,7 @@ func CreateSpend(parentCtx context.Context, s Spend) (id string, err error) {
 }
 
 // GetSpends will return all spends from a specific owner_id
-func GetSpends(parentCtx context.Context, ownerID string) (spends []Spend, err error) {
+func GetSpends(parentCtx context.Context, ownerID string) (spends []repository.Spend, err error) {
 	spanTags := []attribute.KeyValue{
 		attribute.Key("spend.owner.id").String(ownerID),
 	}
@@ -58,12 +59,12 @@ func GetSpends(parentCtx context.Context, ownerID string) (spends []Spend, err e
 
 	dbClient, err := services.InitDatabase()
 	if err != nil {
-		return []Spend{}, err
+		return []repository.Spend{}, err
 	}
 
 	pid, err := primitive.ObjectIDFromHex(ownerID)
 	if err != nil {
-		return []Spend{}, err
+		return []repository.Spend{}, err
 	}
 
 	col := dbClient.Database(mongodbDatabase).Collection(mongodbSpendsCollection)
@@ -71,14 +72,14 @@ func GetSpends(parentCtx context.Context, ownerID string) (spends []Spend, err e
 	cursor, err := col.Find(ctx, bson.M{"owner_id": pid})
 	if err != nil {
 		cancel()
-		return []Spend{}, err
+		return []repository.Spend{}, err
 	}
 
 	defer cursor.Close(ctx)
 	defer cancel()
 
 	for cursor.Next(ctx) {
-		var spend Spend
+		var spend repository.Spend
 		cursor.Decode(&spend)
 		spends = append(spends, spend)
 		defer cancel()
@@ -86,7 +87,7 @@ func GetSpends(parentCtx context.Context, ownerID string) (spends []Spend, err e
 
 	if err := cursor.Err(); err != nil {
 		cancel()
-		return []Spend{}, err
+		return []repository.Spend{}, err
 	}
 
 	return spends, nil
