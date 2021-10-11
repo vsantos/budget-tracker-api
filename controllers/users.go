@@ -82,6 +82,12 @@ func DeleteUserEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	err := models.DeleteUser(request.Context(), params["id"])
 	if err != nil {
+		if strings.Contains(err.Error(), "non existent user") {
+			response.WriteHeader(http.StatusNotFound)
+			response.Write([]byte(`{"message": "could not create user", "details": "` + err.Error() + `"}`))
+			return
+		}
+
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "could not delete user", "details": "` + err.Error() + `"}`))
 		return

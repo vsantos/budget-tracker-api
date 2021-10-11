@@ -13,7 +13,7 @@ import (
 
 const (
 	// MongodbURI will define a URI to be used across packages
-	MongodbURI = "mongodb://mongodb:27017/"
+	MongodbURI = "mongodb://localhost:27017/"
 	// MongodbDatabase will define a database to be used across packages
 	MongodbDatabase = "budget-tracker"
 	// MongodbUserCollection will define a URI to be used across packages

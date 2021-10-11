@@ -81,7 +81,7 @@ func GetUserByFilter(parentCtx context.Context, bsonKey string, bsonValue string
 	var user repository.User
 
 	col := services.MongoClient.Database(mongodbDatabase).Collection(mongodbUserCollection)
-	ctx, cancel := context.WithTimeout(parentCtx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
 	err = col.FindOne(ctx, bson.M{bsonKey: bsonValue}).Decode(&user)
 	if err != nil {
@@ -109,7 +109,7 @@ func CreateUser(parentCtx context.Context, u repository.User) (id string, err er
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
 	_, err = col.Indexes().CreateOne(
-		context.Background(),
+		ctx,
 		mongo.IndexModel{
 			Keys:    bsonx.Doc{{Key: "login", Value: bsonx.Int32(1)}},
 			Options: options.Index().SetUnique(true),
@@ -163,29 +163,19 @@ func DeleteUser(parentCtx context.Context, id string) (err error) {
 	ctx, span := observability.Span(parentCtx, "mongodb", "DeleteUser", spanTags)
 	defer span.End()
 
-	pid, err := primitive.ObjectIDFromHex(id)
+	repo := repository.NewUserRepository(&repository.UserRepositoryMongoDB{
+		Client: services.MongoClient,
+		Config: services.MongoCfg{
+			URI:       services.MongodbURI,
+			Database:  services.MongodbDatabase,
+			Colletion: services.MongodbUserCollection,
+		},
+	})
+
+	err = repo.Delete(ctx, id)
 	if err != nil {
 		return err
 	}
-
-	col := services.MongoClient.Database(mongodbDatabase).Collection(mongodbUserCollection)
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-
-	log.Infoln("deleting user", id)
-	result, err := col.DeleteOne(ctx, bson.M{"_id": pid})
-	if err != nil {
-		cancel()
-		return err
-	}
-
-	log.Infoln("number of users deleted:", result.DeletedCount)
-
-	if result.DeletedCount == 0 {
-		cancel()
-		return errors.New("non existent user")
-	}
-
-	defer cancel()
 
 	log.Infoln("deleted user", id)
 	return nil

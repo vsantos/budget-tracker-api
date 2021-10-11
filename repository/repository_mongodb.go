@@ -134,6 +134,26 @@ func (u *UserRepositoryMongoDB) Create(ctx context.Context, user User) (id strin
 
 // Delete will
 func (u *UserRepositoryMongoDB) Delete(ctx context.Context, id string) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	pid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		cancel()
+		return err
+	}
+
+	r, err := u.Config.Delete(ctx, bson.M{"_id": pid})
+	if err != nil {
+		cancel()
+		return err
+	}
+
+	if r.DeletedCount == 0 {
+		cancel()
+		return errors.New("non existent user")
+	}
+
 	return nil
 
 }

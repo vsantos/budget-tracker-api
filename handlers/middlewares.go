@@ -73,6 +73,7 @@ func RequireTokenAuthentication(h http.Handler) http.Handler {
 				response.Write([]byte(`{"message": "could not parse token", "details": "possible mistyped bearer token"}`))
 				return
 			}
+
 			token, err := jwt.Parse(jwtString[1], func(token *jwt.Token) (interface{}, error) {
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 					return nil, fmt.Errorf("could not decode token")
