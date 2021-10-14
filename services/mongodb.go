@@ -116,6 +116,7 @@ func (m MongoCfg) Get(ctx context.Context, filter interface{}) (r *mongo.SingleR
 		cancel()
 		return &mongo.SingleResult{}, r.Err()
 	}
+
 	defer cancel()
 	return r, nil
 }

@@ -85,7 +85,7 @@ func (u *UserRepositoryMongoDB) Get(ctx context.Context, id string) (User, error
 	return user, nil
 }
 
-// GetAll will
+// GetAll will return all Users (in a sanitized way)
 func (u *UserRepositoryMongoDB) GetAll(ctx context.Context) ([]SanitizedUser, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	cursor, err := u.Config.GetAll(ctx, bson.M{})
@@ -113,7 +113,7 @@ func (u *UserRepositoryMongoDB) GetAll(ctx context.Context) ([]SanitizedUser, er
 	return users, nil
 }
 
-// Create will
+// Create will create a user based
 func (u *UserRepositoryMongoDB) Create(ctx context.Context, user User) (id string, err error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -132,7 +132,7 @@ func (u *UserRepositoryMongoDB) Create(ctx context.Context, user User) (id strin
 	return r.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
-// Delete will
+// Delete will delete a user based on it's ID
 func (u *UserRepositoryMongoDB) Delete(ctx context.Context, id string) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -158,42 +158,284 @@ func (u *UserRepositoryMongoDB) Delete(ctx context.Context, id string) error {
 
 }
 
+// Get will return all cards from a given owner ID
+func (c *CardRepositoryMongoDB) Get(ctx context.Context, ownerID string) ([]CreditCard, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	oid, err := primitive.ObjectIDFromHex(ownerID)
+	if err != nil {
+		cancel()
+		return []CreditCard{}, err
+	}
+
+	cursor, err := c.Config.GetAll(ctx, bson.M{"owner_id": oid})
+	if err != nil {
+		cancel()
+		return []CreditCard{}, err
+	}
+
+	var cards []CreditCard
+	for cursor.Next(ctx) {
+		var card CreditCard
+		cursor.Decode(&card)
+		cards = append(cards, card)
+		defer cancel()
+	}
+
+	if err := cursor.Err(); err != nil {
+		cancel()
+		return []CreditCard{}, err
+	}
+
+	if len(cards) == 0 {
+		return []CreditCard{}, errors.New("could not find any cards")
+	}
+
+	return cards, nil
+}
+
+// GetAll will return literally all cards from the database
+func (c *CardRepositoryMongoDB) GetAll(ctx context.Context) ([]CreditCard, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	cursor, err := c.Config.GetAll(ctx, bson.M{})
+	if err != nil {
+		cancel()
+		return []CreditCard{}, err
+	}
+
+	var cards []CreditCard
+	for cursor.Next(ctx) {
+		var card CreditCard
+		cursor.Decode(&card)
+		cards = append(cards, card)
+		defer cancel()
+	}
+
+	if err := cursor.Err(); err != nil {
+		cancel()
+		return []CreditCard{}, err
+	}
+
+	return cards, nil
+}
+
+// Create will create a card
+func (c *CardRepositoryMongoDB) Create(ctx context.Context, card CreditCard) (id string, err error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	r, err := c.Config.Create(ctx, card)
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key error collection") {
+			cancel()
+			return "", errors.New("card already exists")
+		}
+
+		cancel()
+		return "", err
+	}
+
+	return r.InsertedID.(primitive.ObjectID).Hex(), nil
+}
+
+// Delete will delete a card based on it's ID
+func (c *CardRepositoryMongoDB) Delete(ctx context.Context, id string) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	pid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		cancel()
+		return err
+	}
+
+	r, err := c.Config.Delete(ctx, bson.M{"_id": pid})
+	if err != nil {
+		cancel()
+		return err
+	}
+
+	if r.DeletedCount == 0 {
+		cancel()
+		return errors.New("non existent card")
+	}
+
+	return nil
+}
+
 // Get will
-func (r *BalanceRepositoryMongoDB) Get(ctx context.Context, id string) (CreditCard, error) {
-	return CreditCard{}, nil
+func (b *BalanceRepositoryMongoDB) Get(ctx context.Context, ownerID string, month int64, year int64) (Balance, error) {
+	var balance Balance
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	oid, err := primitive.ObjectIDFromHex(ownerID)
+	if err != nil {
+		cancel()
+		return Balance{}, err
+	}
+
+	r, err := b.Config.Get(ctx, bson.M{
+		"owner_id": oid,
+		"month":    month,
+		"year":     year,
+	})
+
+	if err != nil {
+		if strings.Contains(err.Error(), "no documents in result") {
+			cancel()
+			return Balance{}, errors.New("could not find balance")
+		}
+		cancel()
+		return Balance{}, err
+	}
+
+	r.Decode(&balance)
+
+	return balance, nil
 }
 
 // GetAll will
-func (r *BalanceRepositoryMongoDB) GetAll(ctx context.Context) ([]CreditCard, error) {
-	return []CreditCard{}, nil
+func (b *BalanceRepositoryMongoDB) GetAll(ctx context.Context) ([]Balance, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	cursor, err := b.Config.GetAll(ctx, bson.M{})
+	if err != nil {
+		cancel()
+		return []Balance{}, err
+	}
+
+	var balances []Balance
+	for cursor.Next(ctx) {
+		var balance Balance
+		cursor.Decode(&balance)
+		balances = append(balances, balance)
+		defer cancel()
+	}
+
+	if err := cursor.Err(); err != nil {
+		cancel()
+		return []Balance{}, err
+	}
+
+	if len(balances) == 0 {
+		return []Balance{}, errors.New("could not find any balances")
+	}
+
+	return balances, nil
 }
 
 // Create will
-func (r *BalanceRepositoryMongoDB) Create(ctx context.Context, card CreditCard) error {
-	return nil
+func (b *BalanceRepositoryMongoDB) Create(ctx context.Context, balance Balance) (id string, err error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	r, err := b.Config.Create(ctx, balance)
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key error collection") {
+			cancel()
+			return "", errors.New("balance already exists")
+		}
+
+		cancel()
+		return "", err
+	}
+
+	return r.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
 // Delete will
-func (r *BalanceRepositoryMongoDB) Delete(ctx context.Context, id string) error {
+func (b *BalanceRepositoryMongoDB) Delete(ctx context.Context, id string) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	pid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		cancel()
+		return err
+	}
+
+	r, err := b.Config.Delete(ctx, bson.M{"_id": pid})
+	if err != nil {
+		cancel()
+		return err
+	}
+
+	if r.DeletedCount == 0 {
+		cancel()
+		return errors.New("non existent balance")
+	}
+
 	return nil
 }
 
-// Get will
-func (r *SpendRepositoryMongoDB) Get(ctx context.Context, id string) (CreditCard, error) {
-	return CreditCard{}, nil
+// Get will return a list of spends from a given ownerID
+func (s *SpendRepositoryMongoDB) Get(ctx context.Context, ownerID string) ([]Spend, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	oid, err := primitive.ObjectIDFromHex(ownerID)
+	if err != nil {
+		cancel()
+		return []Spend{}, err
+	}
+
+	cursor, err := s.Config.GetAll(ctx, bson.M{"owner_id": oid})
+	if err != nil {
+		cancel()
+		return []Spend{}, err
+	}
+
+	var spends []Spend
+	for cursor.Next(ctx) {
+		var spend Spend
+		cursor.Decode(&spend)
+		spends = append(spends, spend)
+		defer cancel()
+	}
+
+	if err := cursor.Err(); err != nil {
+		cancel()
+		return []Spend{}, err
+	}
+
+	if len(spends) == 0 {
+		return []Spend{}, errors.New("could not find any spends")
+	}
+
+	return spends, nil
 }
 
-// GetAll will
-func (r *SpendRepositoryMongoDB) GetAll(ctx context.Context) ([]CreditCard, error) {
-	return []CreditCard{}, nil
+// GetAll will all spends in database but currently is not supported
+func (s *SpendRepositoryMongoDB) GetAll(ctx context.Context) ([]Spend, error) {
+	return []Spend{}, nil
 }
 
 // Create will
-func (r *SpendRepositoryMongoDB) Create(ctx context.Context, card CreditCard) error {
-	return nil
+func (s *SpendRepositoryMongoDB) Create(ctx context.Context, spend Spend) (id string, err error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	r, err := s.Config.Create(ctx, spend)
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key error collection") {
+			cancel()
+			return "", errors.New("balance already exists")
+		}
+
+		cancel()
+		return "", err
+	}
+
+	return r.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
 // Delete will
-func (r *SpendRepositoryMongoDB) Delete(ctx context.Context, id string) error {
+func (s *SpendRepositoryMongoDB) Delete(ctx context.Context, id string) error {
 	return nil
 }

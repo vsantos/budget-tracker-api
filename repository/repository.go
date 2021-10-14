@@ -12,6 +12,21 @@ func NewUserRepository(u UserRepository) UserRepository {
 	return u
 }
 
+// NewCardRepository will return a CardRepository interface based on a struct
+func NewCardRepository(c CardRepository) CardRepository {
+	return c
+}
+
+// NewBalanceRepository will return a BalanceRepository interface based on a struct
+func NewBalanceRepository(b BalanceRepository) BalanceRepository {
+	return b
+}
+
+// NewSpendRepository will return a SpendRepository interface based on a struct
+func NewSpendRepository(s SpendRepository) SpendRepository {
+	return s
+}
+
 // DatabaseManagerRepository will define instance operations
 type DatabaseManagerRepository interface {
 	Health() (err error)
@@ -26,26 +41,26 @@ type UserRepository interface {
 	Delete(ctx context.Context, id string) error
 }
 
-// CardRepository defines a User
+// CardRepository defines a Card
 type CardRepository interface {
-	Get(ctx context.Context, id string) (CreditCard, error)
+	Get(ctx context.Context, ownerID string) ([]CreditCard, error)
 	GetAll(ctx context.Context) ([]CreditCard, error)
-	Create(ctx context.Context, c CreditCard) error
+	Create(ctx context.Context, c CreditCard) (id string, err error)
 	Delete(ctx context.Context, id string) error
 }
 
-// SpendRepository defines a User
+// SpendRepository defines a Spend
 type SpendRepository interface {
-	Get(ctx context.Context, id string) (Spend, error)
+	Get(ctx context.Context, ownerID string) ([]Spend, error)
 	GetAll(ctx context.Context) ([]Spend, error)
-	Create(ctx context.Context, s Spend) error
+	Create(ctx context.Context, s Spend) (id string, err error)
 	Delete(ctx context.Context, id string) error
 }
 
-// BalanceRepository defines a User
+// BalanceRepository defines a Balance
 type BalanceRepository interface {
-	Get(ctx context.Context, id string) (Balance, error)
+	Get(ctx context.Context, ownerID string, month int64, year int64) (Balance, error)
 	GetAll(ctx context.Context) ([]Balance, error)
-	Create(ctx context.Context, b Balance) error
+	Create(ctx context.Context, b Balance) (id string, err error)
 	Delete(ctx context.Context, id string) error
 }

@@ -7,7 +7,6 @@ import (
 	"budget-tracker-api/services"
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -62,7 +61,6 @@ func GetUser(parentCtx context.Context, id string) (*repository.User, error) {
 	})
 
 	u, err := repo.Get(ctx, id)
-	fmt.Println(u.ID)
 	if err != nil {
 		cancel()
 		return &repository.User{}, err
@@ -144,7 +142,7 @@ func CreateUser(parentCtx context.Context, u repository.User) (id string, err er
 	id, err = repo.Create(ctx, u)
 	if err != nil {
 		cancel()
-		return id, err
+		return "", err
 	}
 
 	defer cancel()

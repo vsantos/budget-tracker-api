@@ -81,7 +81,8 @@ definitions:
     type: object
     x-go-package: budget-tracker-api/repository
   JWTResponse:
-    description: JWTResponse returns as HTTP response the user details (to be used along with the generated JWT token)
+    description: JWTResponse returns as HTTP response the user details (to be used
+      along with the generated JWT token)
     properties:
       details:
         $ref: '#/definitions/SanitizedUser'
@@ -131,7 +132,8 @@ definitions:
     type: object
     x-go-package: budget-tracker-api/repository
   PaymentMethod:
-    description: PaymentMethod defines which payment method was used for a certain spend
+    description: PaymentMethod defines which payment method was used for a certain
+      spend
     properties:
       credit:
         $ref: '#/definitions/CreditCard'
@@ -230,7 +232,8 @@ info:
   license:
     name: MIT
     url: http://opensource.org/licenses/MIT
-  termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
+  termsOfService: there are no TOS at this moment, use at your own risk we take no
+    responsibility
   title: Budget-tracker API.
   version: 0.0.4
 paths:
@@ -274,7 +277,8 @@ paths:
       - Balance
   /api/v1/balance/{owner_id}:
     get:
-      description: List all balances from a given owner or a single one given a month and year as query params
+      description: List all balances from a given owner or a single one given a month
+        and year as query params
       operationId: list
       parameters:
       - description: application/json

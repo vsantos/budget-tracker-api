@@ -22,9 +22,11 @@ The mongodb served by `docker-compose` has no credentials so it's recommended on
 
 The "observability" stack containing: `jaeger` and `prometheus` is optional but recommended for testing purposes. You can either disable them by commenting on the services at `docker-compose.yml` or simply specifying which service you are going to need: `docker-compose up -d budget-tracker`.
 
+### Using 'realize'
+
 ## Swagger API support
 
-This application uses go-swagger to generate swagger specs directly from the code, to run it just:
+This application uses [go-swagger](https://goswagger.io/install.html) to generate swagger specs directly from the code, to run it just:
 
 `make swagger-spec`
 

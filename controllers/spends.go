@@ -34,7 +34,7 @@ func CreateSpendEndpoint(response http.ResponseWriter, request *http.Request) {
 	// add spend to balance
 
 	response.WriteHeader(http.StatusCreated)
-	response.Write([]byte(`{"message": "created spend to user '` + spend.OwnerID.Hex() + `'", "id": "` + result + `"}`))
+	response.Write([]byte(`{"message": "created spend", "owner_id": "` + spend.OwnerID.Hex() + `", "id": "` + result + `"}`))
 }
 
 // GetSpendsEndpoint will return all spends from an user
