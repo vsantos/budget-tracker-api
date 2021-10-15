@@ -39,7 +39,7 @@ func GetUsers(parentCtx context.Context) ([]repository.SanitizedUser, error) {
 }
 
 // GetUser will return a user from database based on ID
-func GetUser(parentCtx context.Context, id string) (*repository.User, error) {
+func GetUser(parentCtx context.Context, id string) (*repository.SanitizedUser, error) {
 	spanTags := []attribute.KeyValue{
 		attribute.Key("user.id").String(id),
 	}
@@ -60,7 +60,7 @@ func GetUser(parentCtx context.Context, id string) (*repository.User, error) {
 	u, err := repo.Get(ctx, id)
 	if err != nil {
 		cancel()
-		return &repository.User{}, err
+		return &repository.SanitizedUser{}, err
 	}
 
 	span.SetAttributes(attribute.Key("user.login").String(u.Login))

@@ -57,8 +57,8 @@ func (d *DatabaseRepositoryMongoDB) Health() error {
 }
 
 // Get will
-func (u *UserRepositoryMongoDB) Get(ctx context.Context, id string) (User, error) {
-	var user User
+func (u *UserRepositoryMongoDB) Get(ctx context.Context, id string) (SanitizedUser, error) {
+	var user SanitizedUser
 
 	// col := u.Client.Database(u.Config.Database).Collection(u.Config.Colletion)
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
@@ -66,17 +66,17 @@ func (u *UserRepositoryMongoDB) Get(ctx context.Context, id string) (User, error
 	pid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		cancel()
-		return User{}, err
+		return SanitizedUser{}, err
 	}
 
 	r, err := u.Config.Get(ctx, bson.M{"_id": pid})
 	if err != nil {
 		cancel()
 		if strings.Contains(err.Error(), "no documents in result") {
-			return User{}, errors.New("could not find user")
+			return SanitizedUser{}, errors.New("could not find user")
 		}
 
-		return User{}, err
+		return SanitizedUser{}, err
 	}
 	r.Decode(&user)
 

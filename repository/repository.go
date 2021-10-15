@@ -35,7 +35,7 @@ type DatabaseManagerRepository interface {
 
 // UserRepository defines a User
 type UserRepository interface {
-	Get(ctx context.Context, id string) (User, error)
+	Get(ctx context.Context, id string) (SanitizedUser, error)
 	GetAll(ctx context.Context) ([]SanitizedUser, error)
 	Create(ctx context.Context, d User) (id string, err error)
 	Delete(ctx context.Context, id string) error
