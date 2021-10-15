@@ -4,11 +4,13 @@ import (
 	"context"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
 const (
@@ -41,21 +43,72 @@ type MongoCfg struct {
 	Colletion string
 }
 
-// InitDatabase will return a database client for usage
-func InitDatabase() (*mongo.Client, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-
-	clientOptions := options.Client().ApplyURI("")
-	clientOptions.Monitor = otelmongo.NewMonitor("mongodb")
-	c, err := mongo.Connect(ctx, clientOptions)
+// setIndexes will set all indexes necessary for MongoDB client
+func setIndexes(ctx context.Context, c *mongo.Client) error {
+	_, err := setIndex(
+		ctx,
+		c,
+		MongodbDatabase,
+		MongodbUserCollection,
+		bsonx.Doc{{Key: "login", Value: bsonx.Int32(1)}},
+		options.Index().SetUnique(true),
+	)
 	if err != nil {
-		cancel()
-		return &mongo.Client{}, err
+		return err
 	}
+
+	_, err = setIndex(
+		ctx,
+		c,
+		MongodbDatabase,
+		MongodbCardsCollection,
+		bsonx.Doc{
+			{Key: "owner_id", Value: bsonx.Int32(1)},
+			{Key: "last_digits", Value: bsonx.Int32(1)},
+		},
+		options.Index().SetUnique(true),
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = setIndex(
+		ctx,
+		c,
+		MongodbDatabase,
+		MongodbBalanceCollection,
+		bsonx.Doc{
+			{Key: "owner_id", Value: bsonx.Int32(1)},
+			{Key: "month", Value: bsonx.Int32(1)},
+			{Key: "year", Value: bsonx.Int32(1)},
+		},
+		options.Index().SetUnique(true),
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// setIndex will performance a single Indexes().CreateOne operation based on a index name
+func setIndex(ctx context.Context, c *mongo.Client, database string, collection string, keys bsonx.Doc, opts *options.IndexOptions) (index string, err error) {
+	ind := c.Database(database).Collection(collection).Indexes()
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+
+	i, err := ind.CreateOne(
+		ctx,
+		mongo.IndexModel{
+			Keys:    keys,
+			Options: opts,
+		},
+	)
+
+	log.Debugln("created index", i)
 
 	defer cancel()
 
-	return c, err
+	return i, nil
 }
 
 // InitDatabaseWithURI will return a database client for usage
@@ -65,6 +118,12 @@ func InitDatabaseWithURI(uri string) (*mongo.Client, error) {
 	clientOptions := options.Client().ApplyURI(uri)
 	clientOptions.Monitor = otelmongo.NewMonitor("mongodb")
 	c, err := mongo.Connect(ctx, clientOptions)
+	if err != nil {
+		cancel()
+		return &mongo.Client{}, err
+	}
+
+	err = setIndexes(ctx, c)
 	if err != nil {
 		cancel()
 		return &mongo.Client{}, err
@@ -86,24 +145,6 @@ func (m MongoCfg) Health() (err error) {
 
 	defer cancel()
 	return nil
-}
-
-// SetIndex will performance a single Indexes().CreateOne operation based on a index name
-func (m MongoCfg) SetIndex(ctx context.Context, keys interface{}, opts *options.IndexOptions) (index string, err error) {
-	col := MongoClient.Database(m.Database).Collection(m.Colletion)
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-
-	i, err := col.Indexes().CreateOne(
-		context.Background(),
-		mongo.IndexModel{
-			Keys:    keys,
-			Options: opts,
-		},
-	)
-
-	defer cancel()
-
-	return i, nil
 }
 
 // Get will perform a mongoDB FindOne operation

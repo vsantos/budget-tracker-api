@@ -9,9 +9,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/bsonx"
 	"go.opentelemetry.io/otel/attribute"
 )
 
@@ -24,20 +21,7 @@ func CreateBalance(parentCtx context.Context, b repository.Balance) (id string, 
 	ctx, span := observability.Span(parentCtx, "mongodb", "CreateBalance", spanTags)
 	defer span.End()
 
-	col := services.MongoClient.Database(mongodbDatabase).Collection(mongodbBalanceCollection)
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-
-	_, err = col.Indexes().CreateOne(
-		ctx,
-		mongo.IndexModel{
-			Keys: bsonx.Doc{
-				{Key: "owner_id", Value: bsonx.Int32(1)},
-				{Key: "month", Value: bsonx.Int32(1)},
-				{Key: "year", Value: bsonx.Int32(1)},
-			},
-			Options: options.Index().SetUnique(true),
-		},
-	)
 
 	// adding timestamp to creationDate
 	t := time.Now()

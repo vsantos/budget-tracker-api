@@ -9,9 +9,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/bsonx"
 	"go.opentelemetry.io/otel/attribute"
 )
 
@@ -24,16 +21,7 @@ func CreateCard(parentCtx context.Context, c repository.CreditCard) (id string, 
 	ctx, span := observability.Span(parentCtx, "mongodb", "CreateCard", spanTags)
 	defer span.End()
 
-	col := services.MongoClient.Database(mongodbDatabase).Collection(mongodbCardsCollection)
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-
-	_, err = col.Indexes().CreateOne(
-		ctx,
-		mongo.IndexModel{
-			Keys:    bsonx.Doc{{Key: "owner_id", Value: bsonx.Int32(1)}, {Key: "last_digits", Value: bsonx.Int32(1)}},
-			Options: options.Index().SetUnique(true),
-		},
-	)
 
 	// adding timestamp to creationDate
 	t := time.Now()

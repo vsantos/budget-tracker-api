@@ -14,9 +14,6 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
 // GetUsers will return all users from database
@@ -103,16 +100,7 @@ func CreateUser(parentCtx context.Context, u repository.User) (id string, err er
 	ctx, span := observability.Span(parentCtx, "mongodb", "CreateUser", spanTags)
 	defer span.End()
 
-	col := services.MongoClient.Database(mongodbDatabase).Collection(mongodbUserCollection)
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-
-	_, err = col.Indexes().CreateOne(
-		ctx,
-		mongo.IndexModel{
-			Keys:    bsonx.Doc{{Key: "login", Value: bsonx.Int32(1)}},
-			Options: options.Index().SetUnique(true),
-		},
-	)
 
 	// adding timestamp to creationDate
 	t := time.Now()
