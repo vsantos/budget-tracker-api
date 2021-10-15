@@ -2,18 +2,19 @@ package models
 
 import (
 	"budget-tracker-api/observability"
+	"budget-tracker-api/repository"
 	"budget-tracker-api/services"
 	"context"
+	"fmt"
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.opentelemetry.io/otel/attribute"
 )
 
 // CreateSpend creates a card for a given owner_id
-func CreateSpend(parentCtx context.Context, s Spend) (id string, err error) {
+func CreateSpend(parentCtx context.Context, s repository.Spend) (id string, err error) {
 	spanTags := []attribute.KeyValue{
 		attribute.Key("spend.owner.id").String(s.OwnerID.String()),
 	}
@@ -21,34 +22,37 @@ func CreateSpend(parentCtx context.Context, s Spend) (id string, err error) {
 	ctx, span := observability.Span(parentCtx, "mongodb", "CreateSpend", spanTags)
 	defer span.End()
 
-	dbClient, err := services.InitDatabase()
-	if err != nil {
-		return "", err
-	}
-
-	col := dbClient.Database(mongodbDatabase).Collection(mongodbSpendsCollection)
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-
 	// adding timestamp to creationDate
 	t := time.Now()
 	s.CreatedAt = primitive.NewDateTimeFromTime(t)
 
-	r, err := col.InsertOne(ctx, s)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+
+	repo := repository.NewSpendRepository(&repository.SpendRepositoryMongoDB{
+		Client: services.MongoClient,
+		Config: services.MongoCfg{
+			URI:       services.MongodbURI,
+			Database:  services.MongodbDatabase,
+			Colletion: services.MongodbSpendsCollection,
+		},
+	})
+
+	id, err = repo.Create(ctx, s)
+	fmt.Println(id)
 	if err != nil {
 		cancel()
 		return "", err
 	}
-
-	span.SetAttributes(attribute.Key("spend.id").String(r.InsertedID.(primitive.ObjectID).Hex()))
+	span.SetAttributes(attribute.Key("spend.id").String(id))
 	defer cancel()
 
 	observability.Metrics.Spends.SpendsCreated.Inc()
-	log.Infoln("created spend", r.InsertedID.(primitive.ObjectID).Hex())
-	return r.InsertedID.(primitive.ObjectID).Hex(), nil
+	log.Infoln("created spend", id)
+	return id, nil
 }
 
 // GetSpends will return all spends from a specific owner_id
-func GetSpends(parentCtx context.Context, ownerID string) (spends []Spend, err error) {
+func GetSpends(parentCtx context.Context, ownerID string) ([]repository.Spend, error) {
 	spanTags := []attribute.KeyValue{
 		attribute.Key("spend.owner.id").String(ownerID),
 	}
@@ -56,37 +60,22 @@ func GetSpends(parentCtx context.Context, ownerID string) (spends []Spend, err e
 	ctx, span := observability.Span(parentCtx, "mongodb", "GetSpends", spanTags)
 	defer span.End()
 
-	dbClient, err := services.InitDatabase()
-	if err != nil {
-		return []Spend{}, err
-	}
+	repo := repository.NewSpendRepository(&repository.SpendRepositoryMongoDB{
+		Client: services.MongoClient,
+		Config: services.MongoCfg{
+			URI:       services.MongodbURI,
+			Database:  services.MongodbDatabase,
+			Colletion: services.MongodbSpendsCollection,
+		},
+	})
 
-	pid, err := primitive.ObjectIDFromHex(ownerID)
-	if err != nil {
-		return []Spend{}, err
-	}
-
-	col := dbClient.Database(mongodbDatabase).Collection(mongodbSpendsCollection)
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	cursor, err := col.Find(ctx, bson.M{"owner_id": pid})
-	if err != nil {
-		cancel()
-		return []Spend{}, err
-	}
-
-	defer cursor.Close(ctx)
 	defer cancel()
 
-	for cursor.Next(ctx) {
-		var spend Spend
-		cursor.Decode(&spend)
-		spends = append(spends, spend)
-		defer cancel()
-	}
-
-	if err := cursor.Err(); err != nil {
+	spends, err := repo.Get(ctx, ownerID)
+	if err != nil {
 		cancel()
-		return []Spend{}, err
+		return []repository.Spend{}, err
 	}
 
 	return spends, nil

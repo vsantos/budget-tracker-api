@@ -30,6 +30,7 @@ import (
 	"budget-tracker-api/observability"
 	"budget-tracker-api/routes"
 	"budget-tracker-api/server"
+	"budget-tracker-api/services"
 	"crypto/tls"
 
 	"github.com/gorilla/mux"
@@ -37,8 +38,10 @@ import (
 )
 
 const (
-	port    = ":5000"
-	service = "budget-tracker-api"
+	port      = ":5000"
+	service   = "budget-tracker-api"
+	jaegerURL = "http://localhost:14268/api/traces"
+	zipkinURL = "http://jaeger:9411/api/v2/spans"
 )
 
 func init() {
@@ -48,8 +51,8 @@ func init() {
 func main() {
 	c := observability.ProvidersConfig{
 		ServiceName: "budget-tracker-api",
-		JaegerURL:   "http://jaeger:14268/api/traces",
-		ZipkinURL:   "http://jaeger:9411/api/v2/spans",
+		JaegerURL:   jaegerURL,
+		ZipkinURL:   zipkinURL,
 	}
 
 	p, err := c.InitTracerProviders()
@@ -74,6 +77,23 @@ func main() {
 		CertFile: "config/tls/server.crt",
 		KeyFile:  "config/tls/server.key",
 	}
+
+	services.MongoClient, err = services.InitDatabaseWithURI(services.MongodbURI)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// repo := repository.NewUserRepository(&repository.UserRepositoryMongoDB{
+	// 	Client: services.MongoClient,
+	// 	Config: services.MongoCfg{
+	// 		URI:       services.MongodbURI,
+	// 		Database:  "budget-tracker",
+	// 		Colletion: "users",
+	// 	},
+	// })
+
+	// r, _ := repo.GetAll(context.TODO())
+	// fmt.Println(r)
 
 	// In case of 'h2' (HTTP/2) the serverTLS must be set as `true`
 	err = hc.InitHTTPServer(false)

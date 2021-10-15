@@ -1,6 +1,5 @@
 ## Features
 
+- env to configure traces and database URLs
 - Lock user for multiple 401 failures when getting token
-- Add spends
-- Add tracer
-- Add missing tests
+- Add roles to allow "GetAll" operations

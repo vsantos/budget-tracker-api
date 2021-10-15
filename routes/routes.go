@@ -130,6 +130,11 @@ func InitRoutes(service string, router *mux.Router) {
 	//     examples:
 	//       application/json: { "message": "created user '<USER_LOGIN>'", "id": "<USER_ID>" }
 	//     type: json
+	//   '409':
+	//     description: user already exists
+	//     examples:
+	//       application/json: { "message": "could not create user", "details": "user already exists" }
+	//     type: json
 	//   '500':
 	//     description: internal server error
 	//     examples:
@@ -250,6 +255,11 @@ func InitRoutes(service string, router *mux.Router) {
 	//     description: deleted user
 	//     examples:
 	//       application/json: { "message": "created card '<CARD_ALIAS>'", "id": "<CARD_ID>" }
+	//     type: json
+	//   '409':
+	//     description: card already exists
+	//     examples:
+	//       application/json: { "message": "could not create card", "details": "card already exists" }
 	//     type: json
 	//   '500':
 	//     description: internal server error
@@ -391,6 +401,11 @@ func InitRoutes(service string, router *mux.Router) {
 	//     description: bad request
 	//     examples:
 	//       application/json: {"message": "could not create balance", "details": "balances must have an 'owner_id'"}
+	//     type: json
+	//   '409':
+	//     description: balance already exists
+	//     examples:
+	//       application/json: { "message": "could not create balance", "details": "balance already exists" }
 	//     type: json
 	//   '500':
 	//     description: internal server error

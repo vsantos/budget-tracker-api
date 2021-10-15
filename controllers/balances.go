@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"budget-tracker-api/models"
+	"budget-tracker-api/repository"
 	"encoding/json"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -14,7 +16,7 @@ import (
 func CreateBalanceEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
 
-	var balance models.Balance
+	var balance repository.Balance
 
 	_ = json.NewDecoder(request.Body).Decode(&balance)
 
@@ -26,6 +28,12 @@ func CreateBalanceEndpoint(response http.ResponseWriter, request *http.Request) 
 
 	result, err := models.CreateBalance(request.Context(), balance)
 	if err != nil {
+		if strings.Contains(err.Error(), "balance already exists") {
+			response.WriteHeader(http.StatusConflict)
+			response.Write([]byte(`{"message": "could not create balance", "details": "` + err.Error() + `"}`))
+			return
+		}
+
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "could not create balance", "details": "` + err.Error() + `"}`))
 		return

@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"budget-tracker-api/models"
+	"budget-tracker-api/repository"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -24,7 +26,7 @@ func CreateCardEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
 	response.Header().Set("Access-Control-Allow-Origin", "*")
 
-	var card models.CreditCard
+	var card repository.CreditCard
 
 	_ = json.NewDecoder(request.Body).Decode(&card)
 
@@ -37,6 +39,12 @@ func CreateCardEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	result, err := models.CreateCard(request.Context(), card)
 	if err != nil {
+		if strings.Contains(err.Error(), "card already exists") {
+			response.WriteHeader(http.StatusConflict)
+			response.Write([]byte(`{"message": "could not create card", "details": "` + err.Error() + `"}`))
+			return
+		}
+
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "could not create card", "details": "` + err.Error() + `"}`))
 		return
@@ -75,6 +83,12 @@ func GetCardsEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	cards, err := models.GetCards(request.Context(), params["owner_id"])
 	if err != nil {
+		if strings.Contains(err.Error(), "could not find any cards") {
+			response.WriteHeader(http.StatusNotFound)
+			response.Write([]byte(`{"message": "` + err.Error() + `", "owner_id": "` + params["owner_id"] + `"}`))
+			return
+		}
+
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "` + err.Error() + `"}`))
 		return

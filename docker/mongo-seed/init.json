@@ -1,5 +1,6 @@
 [
     {
+        "_id": {"$oid":"5143afc66d44e1ceb372121e"},
         "login": "admin",
         "firstname": "Temporary",
         "lastname": "Seeded User",

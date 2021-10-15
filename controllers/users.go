@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"budget-tracker-api/models"
+	"budget-tracker-api/repository"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -12,12 +14,18 @@ import (
 func CreateUserEndpoint(response http.ResponseWriter, request *http.Request) {
 	response.Header().Add("content-type", "application/json")
 
-	var user models.User
+	var user repository.User
 
 	_ = json.NewDecoder(request.Body).Decode(&user)
 
 	result, err := models.CreateUser(request.Context(), user)
 	if err != nil {
+		if strings.Contains(err.Error(), "user already exists") {
+			response.WriteHeader(http.StatusConflict)
+			response.Write([]byte(`{"message": "could not create user", "details": "` + err.Error() + `"}`))
+			return
+		}
+
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "could not create user", "details": "` + err.Error() + `"}`))
 		return
@@ -53,6 +61,11 @@ func GetUserEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	user, err := models.GetUser(request.Context(), params["id"])
 	if err != nil {
+		if strings.Contains(err.Error(), "could not find user") {
+			response.WriteHeader(http.StatusNotFound)
+			response.Write([]byte(`{"message": "could not find user", "id": "` + params["id"] + `"}`))
+			return
+		}
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "` + err.Error() + `"}`))
 		return
@@ -69,6 +82,12 @@ func DeleteUserEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	err := models.DeleteUser(request.Context(), params["id"])
 	if err != nil {
+		if strings.Contains(err.Error(), "non existent user") {
+			response.WriteHeader(http.StatusNotFound)
+			response.Write([]byte(`{"message": "could not create user", "details": "` + err.Error() + `"}`))
+			return
+		}
+
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "could not delete user", "details": "` + err.Error() + `"}`))
 		return

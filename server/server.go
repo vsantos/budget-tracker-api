@@ -43,9 +43,11 @@ func WaitGracefulShutdown(srv *http.Server, timeoutSeconds time.Duration) (err e
 // InitHTTPServer will init a HTTP/1 (h2) server with optional TLS enforcement
 func (c HTTPConfig) InitHTTPServer(serveTLS bool) (err error) {
 	srv := &http.Server{
-		Addr:      c.Port,
-		Handler:   c.Router,
-		TLSConfig: c.TLSConfig,
+		WriteTimeout: 1 * time.Second,
+		ReadTimeout:  1 * time.Second,
+		Addr:         c.Port,
+		Handler:      c.Router,
+		TLSConfig:    c.TLSConfig,
 	}
 
 	if serveTLS {

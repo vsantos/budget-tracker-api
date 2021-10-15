@@ -2,6 +2,7 @@ consumes:
 - application/json
 definitions:
   Balance:
+    description: Balance defines an user balance
     properties:
       created_at:
         $ref: '#/definitions/DateTime'
@@ -36,7 +37,7 @@ definitions:
         type: integer
         x-go-name: Year
     type: object
-    x-go-package: budget-tracker-api/models
+    x-go-package: budget-tracker-api/repository
   CreditCard:
     description: CreditCard defines a user credit card
     properties:
@@ -60,7 +61,7 @@ definitions:
       owner_id:
         $ref: '#/definitions/ObjectID'
     type: object
-    x-go-package: budget-tracker-api/models
+    x-go-package: budget-tracker-api/repository
   DateTime:
     format: int64
     title: DateTime represents the BSON datetime value.
@@ -78,9 +79,10 @@ definitions:
         type: number
         x-go-name: NetIncome
     type: object
-    x-go-package: budget-tracker-api/models
+    x-go-package: budget-tracker-api/repository
   JWTResponse:
-    description: JWTResponse returns as HTTP response the user details (to be used along with the generated JWT token)
+    description: JWTResponse returns as HTTP response the user details (to be used
+      along with the generated JWT token)
     properties:
       details:
         $ref: '#/definitions/SanitizedUser'
@@ -94,7 +96,7 @@ definitions:
         type: string
         x-go-name: Type
     type: object
-    x-go-package: budget-tracker-api/models
+    x-go-package: budget-tracker-api/repository
   JWTUser:
     description: JWTUser defines a user to generate JWT tokens
     properties:
@@ -108,7 +110,7 @@ definitions:
         type: string
         x-go-name: Password
     type: object
-    x-go-package: budget-tracker-api/models
+    x-go-package: budget-tracker-api/repository
   ObjectID:
     items:
       format: uint8
@@ -128,8 +130,10 @@ definitions:
         type: number
         x-go-name: FixedOutcome
     type: object
-    x-go-package: budget-tracker-api/models
+    x-go-package: budget-tracker-api/repository
   PaymentMethod:
+    description: PaymentMethod defines which payment method was used for a certain
+      spend
     properties:
       credit:
         $ref: '#/definitions/CreditCard'
@@ -140,7 +144,7 @@ definitions:
         type: boolean
         x-go-name: PaymentSlip
     type: object
-    x-go-package: budget-tracker-api/models
+    x-go-package: budget-tracker-api/repository
   SanitizedUser:
     description: SanitizedUser defines a sanited user to GET purposes
     properties:
@@ -159,10 +163,11 @@ definitions:
         type: string
         x-go-name: Login
     type: object
-    x-go-package: budget-tracker-api/models
+    x-go-package: budget-tracker-api/repository
   Spend:
+    description: Spend defines a user spend to be added to Balance
     properties:
-      category:
+      categories:
         example: '"categories": ["personal development"]'
         items:
           type: string
@@ -186,7 +191,7 @@ definitions:
         type: string
         x-go-name: Type
     type: object
-    x-go-package: budget-tracker-api/models
+    x-go-package: budget-tracker-api/repository
   User:
     description: User struct defines a user
     properties:
@@ -211,7 +216,7 @@ definitions:
         type: string
         x-go-name: SaltedPassword
     type: object
-    x-go-package: budget-tracker-api/models
+    x-go-package: budget-tracker-api/repository
 host: budget-tracker:5000
 info:
   contact:
@@ -227,7 +232,8 @@ info:
   license:
     name: MIT
     url: http://opensource.org/licenses/MIT
-  termsOfService: there are no TOS at this moment, use at your own risk we take no responsibility
+  termsOfService: there are no TOS at this moment, use at your own risk we take no
+    responsibility
   title: Budget-tracker API.
   version: 0.0.4
 paths:
@@ -261,6 +267,12 @@ paths:
             application/json:
               details: balances must have an 'owner_id'
               message: could not create balance
+        "409":
+          description: balance already exists
+          examples:
+            application/json:
+              details: balance already exists
+              message: could not create balance
         "500":
           description: internal server error
           examples:
@@ -271,7 +283,8 @@ paths:
       - Balance
   /api/v1/balance/{owner_id}:
     get:
-      description: List all balances from a given owner or a single one given a month and year as query params
+      description: List all balances from a given owner or a single one given a month
+        and year as query params
       operationId: list
       parameters:
       - description: application/json
@@ -362,6 +375,12 @@ paths:
             application/json:
               id: <CARD_ID>
               message: created card '<CARD_ALIAS>'
+        "409":
+          description: card already exists
+          examples:
+            application/json:
+              details: card already exists
+              message: could not create card
         "500":
           description: internal server error
           examples:
@@ -616,6 +635,12 @@ paths:
             application/json:
               id: <USER_ID>
               message: created user '<USER_LOGIN>'
+        "409":
+          description: user already exists
+          examples:
+            application/json:
+              details: user already exists
+              message: could not create user
         "500":
           description: internal server error
           examples:

@@ -3,6 +3,7 @@ package controllers
 import (
 	"budget-tracker-api/crypt"
 	"budget-tracker-api/models"
+	"budget-tracker-api/repository"
 	"encoding/json"
 	"net/http"
 
@@ -52,7 +53,7 @@ func CreateJWTTokenEndpoint(response http.ResponseWriter, request *http.Request)
 	response.Header().Add("content-type", "application/json")
 	response.Header().Set("Access-Control-Allow-Origin", "*")
 
-	var jwtUser models.JWTUser
+	var jwtUser repository.JWTUser
 
 	_ = json.NewDecoder(request.Body).Decode(&jwtUser)
 
@@ -90,7 +91,7 @@ func CreateJWTTokenEndpoint(response http.ResponseWriter, request *http.Request)
 			log.Infof("created token for user '%s'", jwtUser.Login)
 			response.WriteHeader(http.StatusCreated)
 
-			var jwtResponse models.JWTResponse
+			var jwtResponse repository.JWTResponse
 			jwtResponse.Type = "bearer"
 			jwtResponse.RefreshToken = RefreshToken
 			jwtResponse.AccessToken = AccessToken
