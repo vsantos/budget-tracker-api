@@ -39,6 +39,12 @@ func CreateCardEndpoint(response http.ResponseWriter, request *http.Request) {
 
 	result, err := models.CreateCard(request.Context(), card)
 	if err != nil {
+		if strings.Contains(err.Error(), "card already exists") {
+			response.WriteHeader(http.StatusConflict)
+			response.Write([]byte(`{"message": "could not create card", "details": "` + err.Error() + `"}`))
+			return
+		}
+
 		response.WriteHeader(http.StatusInternalServerError)
 		response.Write([]byte(`{"message": "could not create card", "details": "` + err.Error() + `"}`))
 		return

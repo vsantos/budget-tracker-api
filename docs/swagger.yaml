@@ -267,6 +267,12 @@ paths:
             application/json:
               details: balances must have an 'owner_id'
               message: could not create balance
+        "409":
+          description: balance already exists
+          examples:
+            application/json:
+              details: balance already exists
+              message: could not create balance
         "500":
           description: internal server error
           examples:
@@ -369,6 +375,12 @@ paths:
             application/json:
               id: <CARD_ID>
               message: created card '<CARD_ALIAS>'
+        "409":
+          description: card already exists
+          examples:
+            application/json:
+              details: card already exists
+              message: could not create card
         "500":
           description: internal server error
           examples:
@@ -623,6 +635,12 @@ paths:
             application/json:
               id: <USER_ID>
               message: created user '<USER_LOGIN>'
+        "409":
+          description: user already exists
+          examples:
+            application/json:
+              details: user already exists
+              message: could not create user
         "500":
           description: internal server error
           examples:
