@@ -1,11 +1,13 @@
 package services
 
 import (
+	"budget-tracker-api/observability"
 	"context"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo"
+	"go.opentelemetry.io/otel/attribute"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -93,6 +95,13 @@ func setIndexes(ctx context.Context, c *mongo.Client) error {
 
 // setIndex will performance a single Indexes().CreateOne operation based on a index name
 func setIndex(ctx context.Context, c *mongo.Client, database string, collection string, keys bsonx.Doc, opts *options.IndexOptions) (index string, err error) {
+	spanTags := []attribute.KeyValue{
+		attribute.Key("index.collection.name").String(collection),
+	}
+
+	ctx, span := observability.Span(ctx, "mongodb", "CreateIndex", spanTags)
+	defer span.End()
+
 	ind := c.Database(database).Collection(collection).Indexes()
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
@@ -105,6 +114,7 @@ func setIndex(ctx context.Context, c *mongo.Client, database string, collection 
 	)
 
 	log.Debugln("created index", i)
+	span.SetAttributes(attribute.Key("index.name").String(i))
 
 	defer cancel()
 
