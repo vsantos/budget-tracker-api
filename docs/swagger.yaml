@@ -167,7 +167,7 @@ definitions:
   Spend:
     description: Spend defines a user spend to be added to Balance
     properties:
-      category:
+      categories:
         example: '"categories": ["personal development"]'
         items:
           type: string

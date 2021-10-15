@@ -106,7 +106,7 @@ type Spend struct {
 	// example: debit: true
 	PaymentMethod PaymentMethod `json:"payment_method,omitempty" bson:"payment_method,omitempty"`
 	// example: "categories": ["personal development"]
-	Categories []string `json:"category,omitempty" bson:"category,omitempty"`
+	Categories []string `json:"categories,omitempty" bson:"categories,omitempty"`
 	// swagger:ignore
 	CreatedAt primitive.DateTime `json:"created_at,omitempty" bson:"created_at,omitempty"`
 }
